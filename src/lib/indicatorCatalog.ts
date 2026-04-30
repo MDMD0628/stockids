@@ -57,4 +57,68 @@ export const indicatorCatalog: Record<string, IndicatorExplanation> = {
     usedFor:
       "가격 부담이 낮은 편이라는 표현을 조건식 기준으로 정리할 때 사용합니다.",
   },
+  bollingerBand: {
+    key: "bollingerBand",
+    name: "볼린저밴드",
+    plain:
+      "이동평균선을 중심으로 가격이 보통 움직이는 상단과 하단 범위를 그린 밴드입니다.",
+    usedFor:
+      "평균에서 너무 멀어진 구간이나 밴드 상단을 과하게 벗어난 구간을 제한할 때 사용합니다.",
+  },
+  maDistance: {
+    key: "maDistance",
+    name: "이동평균선 이격도",
+    plain:
+      "현재 가격이 기준 이동평균선에서 몇 퍼센트 떨어져 있는지 보는 값입니다.",
+    usedFor:
+      "추세를 따라가되 평균에서 지나치게 멀어진 조건을 줄이는 데 사용합니다.",
+  },
+  macd: {
+    key: "macd",
+    name: "MACD",
+    plain:
+      "빠른 이동평균과 느린 이동평균의 차이를 이용해 흐름 변화의 힘을 보는 지표입니다.",
+    usedFor:
+      "슬슬 힘이 붙는다는 표현을 단기 흐름 전환 조건으로 바꿀 때 사용합니다.",
+  },
+  highLowBreakout: {
+    key: "highLowBreakout",
+    name: "신고가/신저가",
+    plain:
+      "일정 기간 동안 가장 높거나 낮은 가격 구간을 새로 만들었는지 확인하는 기준입니다.",
+    usedFor:
+      "최근 저점을 이탈한 차트를 제외하거나 강한 돌파형 조건을 구분할 때 사용합니다.",
+  },
+  recentReturn: {
+    key: "recentReturn",
+    name: "최근 상승률",
+    plain:
+      "최근 며칠 또는 몇 주 동안 가격이 얼마나 올라왔는지 보는 변화율입니다.",
+    usedFor:
+      "너무 많이 오른 구간을 줄이거나 단기 조정 상태를 표현할 때 사용합니다.",
+  },
+  threeWhiteSoldiers: {
+    key: "threeWhiteSoldiers",
+    name: "적삼병",
+    plain:
+      "양봉이 3거래일 연속으로 이어지는 캔들 패턴입니다.",
+    usedFor:
+      "짧은 기간에 흐름이 연속적으로 붙는 조건을 보조적으로 표현할 때 사용합니다.",
+  },
+  pullback: {
+    key: "pullback",
+    name: "눌림목",
+    plain:
+      "중기 흐름은 유지하되 단기적으로 쉬어 가는 구간을 뜻하는 조건 묶음입니다.",
+    usedFor:
+      "중기 추세 유지, 단기 조정, RSI 중립 구간을 함께 묶어 표현할 때 사용합니다.",
+  },
+  movingAverageAlignment: {
+    key: "movingAverageAlignment",
+    name: "정배열/역배열",
+    plain:
+      "짧은 이동평균선이 긴 이동평균선 위에 순서대로 놓이면 정배열, 반대면 역배열로 봅니다.",
+    usedFor:
+      "차트 흐름이 무너졌는지 또는 중기 흐름이 유지되는지 확인할 때 사용합니다.",
+  },
 };

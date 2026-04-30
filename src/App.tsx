@@ -17,9 +17,9 @@ import { translateQuery } from "./lib/translator";
 import type { RiskProfile, TranslationResult } from "./lib/types";
 
 const starterPrompts = [
-  "거래가 활발하고 최근 흐름이 단단한 중형주를 찾고 싶다",
-  "변동이 너무 크지 않고 실적이 꾸준히 개선되는 종목",
-  "단기 거래량이 붙었지만 과열은 덜한 조건",
+  "평균에서 너무 멀지 않고 거래가 붙는 조건",
+  "눌림목인데 망가진 차트는 제외하고 싶다",
+  "슬슬 힘 붙지만 너무 오른 건 싫어",
 ];
 
 const profileOptions: Array<{
@@ -265,6 +265,82 @@ function App() {
                 >
                   <p className="text-base leading-7 text-ink/80">{result.intent}</p>
                   <p className="mt-2 text-sm leading-6 text-ink/55">{result.reading}</p>
+                </ResultBlock>
+
+                <ResultBlock
+                  icon={<Sparkles size={18} aria-hidden="true" />}
+                  title="인식한 표현"
+                >
+                  {result.matchedPhrases.length > 0 ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {result.matchedPhrases.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-lg border border-pine/20 bg-pine/5 p-4"
+                        >
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <span className="rounded-md bg-pine px-2 py-1 text-xs font-bold text-white">
+                              {item.phrase}
+                            </span>
+                            {item.mappedIndicators.map((indicator) => (
+                              <span
+                                key={indicator}
+                                className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-pine"
+                              >
+                                {indicator}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-sm leading-6 text-ink/65">
+                            {item.interpretation}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm leading-6 text-ink/60">
+                      사전에 등록된 모호한 표현은 따로 감지되지 않았습니다. 입력 문장을
+                      기본 지표 축으로 변환했습니다.
+                    </p>
+                  )}
+                </ResultBlock>
+
+                <ResultBlock
+                  icon={<SlidersHorizontal size={18} aria-hidden="true" />}
+                  title="이렇게 해석한 이유"
+                >
+                  <p className="text-sm leading-6 text-ink/70">
+                    {result.interpretationSummary}
+                  </p>
+                </ResultBlock>
+
+                <ResultBlock
+                  icon={<RefreshCw size={18} aria-hidden="true" />}
+                  title="다르게 해석할 수도 있는 조건"
+                >
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {result.alternativeInterpretations.map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-lg border border-ink/10 bg-paper/45 p-4"
+                      >
+                        <h3 className="text-sm font-bold">{item.label}</h3>
+                        <p className="mt-2 text-sm leading-6 text-ink/65">
+                          {item.description}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {item.conditionHints.map((hint) => (
+                            <span
+                              key={hint}
+                              className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-ink/60"
+                            >
+                              {hint}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </ResultBlock>
 
                 <ResultBlock

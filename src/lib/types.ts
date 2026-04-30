@@ -27,11 +27,27 @@ export type IndicatorExplanation = {
   usedFor: string;
 };
 
+export type MatchedPhrase = {
+  id: string;
+  phrase: string;
+  interpretation: string;
+  mappedIndicators: string[];
+};
+
+export type AlternativeInterpretation = {
+  label: string;
+  description: string;
+  conditionHints: string[];
+};
+
 export type TranslationResult = {
   id: string;
   profile: RiskProfile;
   intent: string;
   reading: string;
+  matchedPhrases: MatchedPhrase[];
+  interpretationSummary: string;
+  alternativeInterpretations: AlternativeInterpretation[];
   conditions: SearchCondition[];
   explanations: IndicatorExplanation[];
   referenceLabel: "조건검색 참고용";
