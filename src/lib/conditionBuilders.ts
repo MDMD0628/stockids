@@ -1,4 +1,9 @@
-import type { MachineQuery, RiskProfile, SearchCondition } from "./types";
+import type {
+  ConditionSource,
+  MachineQuery,
+  RiskProfile,
+  SearchCondition,
+} from "./types";
 
 export const profileDefaults = {
   balanced: {
@@ -59,6 +64,12 @@ export const profileDefaults = {
 
 export type ProfileDefaults = (typeof profileDefaults)[RiskProfile];
 
+type ConditionOptions = {
+  easyDescription?: string;
+  source?: ConditionSource;
+  sourcePhrase?: string;
+};
+
 const numberFromText = (value: string) =>
   Number(value.replace(/,/g, "").replace(/[^0-9.-]/g, ""));
 
@@ -81,6 +92,7 @@ export const condition = (
   reason: string,
   indicatorKey: string,
   machineQuery: MachineQuery,
+  options: ConditionOptions = {},
 ): SearchCondition => ({
   id,
   category,
@@ -90,6 +102,9 @@ export const condition = (
   value,
   display: `${metric} ${operator} ${value}`,
   reason,
+  easyDescription: options.easyDescription ?? reason,
+  source: options.source ?? "default_filter",
+  sourcePhrase: options.sourcePhrase,
   indicatorKey,
   machineQuery,
 });

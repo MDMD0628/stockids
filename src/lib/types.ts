@@ -8,6 +8,8 @@ export type ConditionCategory =
   | "growth"
   | "risk";
 
+export type ConditionSource = "user_expression" | "default_filter";
+
 export type MachineQuery =
   | {
       field: string;
@@ -37,6 +39,9 @@ export type SearchCondition = {
   value: string;
   display: string;
   reason: string;
+  easyDescription: string;
+  source: ConditionSource;
+  sourcePhrase?: string;
   indicatorKey: string;
   machineQuery: MachineQuery;
 };

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BarChart3, SlidersHorizontal } from "lucide-react";
+import { BarChart3, SlidersHorizontal } from "lucide-react";
 import { AlternativeInterpretationPanel } from "./components/AlternativeInterpretationPanel";
-import { ConditionCard } from "./components/ConditionCard";
+import { ConditionGroupPanel } from "./components/ConditionGroupPanel";
 import { DisclaimerBar } from "./components/DisclaimerBar";
 import { FeedbackLogPanel } from "./components/FeedbackLogPanel";
 import { FeedbackPanel } from "./components/FeedbackPanel";
@@ -9,10 +9,12 @@ import { IndicatorExplanationPanel } from "./components/IndicatorExplanationPane
 import { InputPanel } from "./components/InputPanel";
 import { LearningSuggestionPanel } from "./components/LearningSuggestionPanel";
 import { MatchedPhrasePanel } from "./components/MatchedPhrasePanel";
+import { PlainLanguageSummaryPanel } from "./components/PlainLanguageSummaryPanel";
 import { profileOptions } from "./components/ProfileSelector";
 import { QuickPrompts } from "./components/QuickPrompts";
 import { ResultBlock } from "./components/ResultBlock";
 import { ResultSummary } from "./components/ResultSummary";
+import { TranslationConclusionCard } from "./components/TranslationConclusionCard";
 import { translateQuery } from "./lib/translator";
 import type { RiskProfile, TranslationResult } from "./lib/types";
 
@@ -153,6 +155,10 @@ function App() {
 
             {result && (
               <div className="space-y-5">
+                <TranslationConclusionCard result={result} />
+
+                <PlainLanguageSummaryPanel conditions={result.conditions} />
+
                 <ResultSummary intent={result.intent} reading={result.reading} />
 
                 <MatchedPhrasePanel matchedPhrases={result.matchedPhrases} />
@@ -170,19 +176,9 @@ function App() {
                   alternatives={result.alternativeInterpretations}
                 />
 
-                <ResultBlock
-                  icon={<ArrowRight size={18} aria-hidden="true" />}
-                  title="변환된 검색 조건"
-                >
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {result.conditions.map((condition) => (
-                      <ConditionCard key={condition.id} condition={condition} />
-                    ))}
-                  </div>
-                </ResultBlock>
+                <ConditionGroupPanel conditions={result.conditions} />
 
                 <IndicatorExplanationPanel
-                  conditions={result.conditions}
                   explanations={result.explanations}
                 />
 

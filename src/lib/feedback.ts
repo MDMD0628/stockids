@@ -28,6 +28,12 @@ export type FeedbackRecord = {
   machineQueries: MachineQuery[];
   feedback: FeedbackValue;
   wrongReason?: FeedbackWrongReason;
+  intentFit?: "matched" | "not_matched";
+  conditionStrengthFeedback?:
+    | "too_conservative"
+    | "balanced"
+    | "too_aggressive";
+  conditionCountFeedback?: "too_many" | "balanced" | "too_few";
   comment?: string;
   createdAt: string;
 };

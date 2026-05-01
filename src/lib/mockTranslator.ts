@@ -107,6 +107,17 @@ const addConditions = (
   nextConditions.forEach((nextCondition) => addCondition(conditionsById, nextCondition));
 };
 
+const tagConditions = (
+  nextConditions: SearchCondition[],
+  source: SearchCondition["source"],
+  sourcePhrase?: string,
+) =>
+  nextConditions.map((condition) => ({
+    ...condition,
+    source,
+    sourcePhrase,
+  }));
+
 const buildMatchedPhrases = (
   phraseMatches: Array<{ rule: PhraseRule; phrase: string }>,
 ): MatchedPhrase[] =>
@@ -137,25 +148,49 @@ export const translateWithMock = (
   addCondition(conditionsById, buildLiquidityCondition(defaults));
 
   if (wantsStability || !wantsMomentum) {
-    addConditions(conditionsById, buildStabilityConditions(defaults, wantsShortTerm));
+    addConditions(
+      conditionsById,
+      tagConditions(
+        buildStabilityConditions(defaults, wantsShortTerm),
+        wantsStability ? "user_expression" : "default_filter",
+        wantsStability ? "안정성 표현" : undefined,
+      ),
+    );
   }
 
   if (wantsMomentum || wantsShortTerm) {
-    addConditions(conditionsById, buildMomentumConditions(defaults));
+    addConditions(
+      conditionsById,
+      tagConditions(
+        buildMomentumConditions(defaults),
+        "user_expression",
+        wantsShortTerm ? "단기 흐름 표현" : "거래 활성도 표현",
+      ),
+    );
   }
 
   addConditions(conditionsById, buildCoreTrendRiskConditions(defaults));
 
   phraseMatches.forEach(({ rule }) => {
-    addConditions(conditionsById, rule.buildConditions(defaults));
+    const matchedPhrase = phraseMatches.find((match) => match.rule.id === rule.id)?.phrase;
+    addConditions(
+      conditionsById,
+      tagConditions(rule.buildConditions(defaults), "user_expression", matchedPhrase),
+    );
   });
 
   if (wantsGrowth) {
-    addConditions(conditionsById, buildGrowthConditions(defaults));
+    addConditions(
+      conditionsById,
+      tagConditions(buildGrowthConditions(defaults), "user_expression", "실적 흐름 표현"),
+    );
   }
 
   if (wantsValue) {
-    addConditions(conditionsById, buildValueConditions(defaults));
+    addConditions(
+      conditionsById,
+      tagConditions(buildValueConditions(defaults), "user_expression", "가격 부담 표현"),
+    );
   }
 
   const conditions = Array.from(conditionsById.values());
