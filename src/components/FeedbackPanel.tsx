@@ -3,11 +3,12 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   type FeedbackRecord,
+  type FeedbackSelectedFilter,
   type FeedbackValue,
   type FeedbackWrongReason,
   saveFeedback,
 } from "../lib/feedback";
-import type { RiskProfile, TranslationResult } from "../lib/types";
+import type { RiskProfile, SearchCondition, TranslationResult } from "../lib/types";
 import { buildTranslationHeadline } from "../lib/resultPresentation";
 import { ResultBlock } from "./ResultBlock";
 
@@ -16,9 +17,11 @@ type StrengthFeedback = "too_conservative" | "balanced" | "too_aggressive";
 type CountFeedback = "too_many" | "balanced" | "too_few";
 
 type FeedbackPanelProps = {
+  conditions: SearchCondition[];
   input: string;
   profile: RiskProfile;
   result: TranslationResult;
+  selectedFilters: FeedbackSelectedFilter[];
   onSaved?: () => void;
 };
 
@@ -68,9 +71,11 @@ const getFeedbackResult = (
 };
 
 export function FeedbackPanel({
+  conditions,
   input,
   profile,
   result,
+  selectedFilters,
   onSaved,
 }: FeedbackPanelProps) {
   const [intentFit, setIntentFit] = useState<IntentFit | null>(null);
@@ -81,8 +86,8 @@ export function FeedbackPanel({
   const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
 
   const machineQueries = useMemo(
-    () => result.conditions.map((condition) => condition.machineQuery),
-    [result.conditions],
+    () => conditions.map((condition) => condition.machineQuery),
+    [conditions],
   );
 
   useEffect(() => {
@@ -110,13 +115,14 @@ export function FeedbackPanel({
       profile,
       resultId: result.id,
       matchedPhrases: result.matchedPhrases,
-      conditions: result.conditions,
+      conditions,
       machineQueries,
       feedback,
       wrongReason,
       intentFit,
       conditionStrengthFeedback: strengthFeedback,
       conditionCountFeedback: countFeedback,
+      selectedFilters,
       comment: comment.trim() || undefined,
       createdAt: new Date().toISOString(),
     };

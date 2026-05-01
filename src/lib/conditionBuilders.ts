@@ -103,7 +103,7 @@ export const condition = (
   display: `${metric} ${operator} ${value}`,
   reason,
   easyDescription: options.easyDescription ?? reason,
-  source: options.source ?? "default_filter",
+  source: options.source ?? "user_expression",
   sourcePhrase: options.sourcePhrase,
   indicatorKey,
   machineQuery,

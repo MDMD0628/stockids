@@ -1,14 +1,15 @@
 import {
-  buildCoreTrendRiskConditions,
   buildGrowthConditions,
-  buildLiquidityCondition,
   buildMomentumConditions,
-  buildStabilityConditions,
   buildValueConditions,
   profileDefaults,
 } from "./conditionBuilders";
 import { indicatorCatalog } from "./indicatorCatalog";
 import { phraseDictionary, type PhraseRule } from "./phraseDictionary";
+import {
+  buildSelectedFilterConditions,
+  type SelectableFilterId,
+} from "./selectableFilters";
 import type {
   AlternativeInterpretation,
   IndicatorExplanation,
@@ -31,6 +32,16 @@ const keywordGroups = {
   value: ["저평가", "per", "pbr", "배당", "가치", "부담"],
   shortTerm: ["단기", "빠른", "민감", "스윙", "급등락"],
 };
+
+const directFilterKeywords: Record<SelectableFilterId, string[]> = {
+  thin_liquidity: ["거래량 얇", "거래가 얇", "거래 적은", "거래 부족", "유동성"],
+  small_market_cap: ["소형주", "작은 종목", "시가총액 작은", "규모 작은"],
+  high_volatility: ["변동성 큰", "흔들림 큰", "위험한", "너무 위험"],
+  deficit_company: ["적자", "실적 불안정", "영업이익 적자"],
+  recent_runup: ["최근 급등", "너무 오른", "과열", "고점", "추격"],
+};
+
+const exclusionWords = ["싫", "제외", "빼", "거르", "줄이"];
 
 const fallbackAlternatives: AlternativeInterpretation[] = [
   {
@@ -58,6 +69,15 @@ const createId = () =>
 
 const hasKeyword = (input: string, group: keyof typeof keywordGroups) =>
   keywordGroups[group].some((word) => input.includes(word));
+
+const getDirectFilterIds = (input: string): SelectableFilterId[] =>
+  Object.entries(directFilterKeywords)
+    .filter(([, keywords]) => {
+      const hasFilterKeyword = keywords.some((keyword) => input.includes(keyword));
+      const hasExclusionIntent = exclusionWords.some((word) => input.includes(word));
+      return hasFilterKeyword && hasExclusionIntent;
+    })
+    .map(([filterId]) => filterId as SelectableFilterId);
 
 const uniqueExplanations = (conditions: SearchCondition[]): IndicatorExplanation[] => {
   const keys = Array.from(new Set(conditions.map((item) => item.indicatorKey)));
@@ -142,21 +162,13 @@ export const translateWithMock = (
   const wantsGrowth = hasKeyword(normalized, "growth");
   const wantsValue = hasKeyword(normalized, "value");
   const wantsShortTerm = hasKeyword(normalized, "shortTerm");
+  const phraseRuleIds = new Set(phraseMatches.map(({ rule }) => rule.id));
+  const directFilterIds = getDirectFilterIds(normalized).filter(
+    (filterId) =>
+      !(filterId === "recent_runup" && phraseRuleIds.has("overheat-avoidance")),
+  );
 
   const conditionsById = new Map<string, SearchCondition>();
-
-  addCondition(conditionsById, buildLiquidityCondition(defaults));
-
-  if (wantsStability || !wantsMomentum) {
-    addConditions(
-      conditionsById,
-      tagConditions(
-        buildStabilityConditions(defaults, wantsShortTerm),
-        wantsStability ? "user_expression" : "default_filter",
-        wantsStability ? "안정성 표현" : undefined,
-      ),
-    );
-  }
 
   if (wantsMomentum || wantsShortTerm) {
     addConditions(
@@ -169,7 +181,17 @@ export const translateWithMock = (
     );
   }
 
-  addConditions(conditionsById, buildCoreTrendRiskConditions(defaults));
+  if (wantsStability) {
+    addConditions(
+      conditionsById,
+      buildSelectedFilterConditions(
+        ["small_market_cap", "high_volatility"],
+        profile,
+        "user_expression",
+        "안정성 표현",
+      ),
+    );
+  }
 
   phraseMatches.forEach(({ rule }) => {
     const matchedPhrase = phraseMatches.find((match) => match.rule.id === rule.id)?.phrase;
@@ -193,6 +215,18 @@ export const translateWithMock = (
     );
   }
 
+  if (directFilterIds.length > 0) {
+    addConditions(
+      conditionsById,
+      buildSelectedFilterConditions(
+        directFilterIds,
+        profile,
+        "user_expression",
+        "제외 의도가 담긴 사용자 표현",
+      ),
+    );
+  }
+
   const conditions = Array.from(conditionsById.values());
   const matchedPhrases = buildMatchedPhrases(phraseMatches);
   const phraseAlternatives = phraseMatches.flatMap(({ rule }) => rule.alternatives);
@@ -211,8 +245,8 @@ export const translateWithMock = (
   const matchedPhraseText = matchedPhrases.map((item) => `"${item.phrase}"`).join(", ");
   const interpretationSummary =
     matchedPhrases.length > 0
-      ? `${matchedPhraseText} 표현을 인식해 평균과의 거리, 과열 완화, 거래 활성도, 중기 흐름 유지 같은 조건으로 분해했습니다. 결과는 입력 문장을 조건식으로 변환한 조건검색 참고용 구조입니다.`
-      : "명확한 사전 표현은 없어서 유동성, 추세, 변동성의 기본 축으로 입력 문장을 조건식으로 변환했습니다. 결과는 조건검색 참고용 구조입니다.";
+      ? `${matchedPhraseText} 표현을 인식해 사용자의 말에서 나온 조건으로 분해했습니다. 위험 요소는 조건식에 자동으로 넣지 않고 별도로 표시합니다.`
+      : "명확한 사전 표현은 없어서 조건식으로 바로 변환할 표현이 적습니다. 위험 요소는 조건검색 참고용으로 별도 표시합니다.";
 
   return {
     id: createId(),
@@ -220,11 +254,11 @@ export const translateWithMock = (
     intent:
       themeParts.length > 0
         ? `${profileCopy[profile]} 기준으로 ${themeParts.join(", ")}을 함께 보는 조건식으로 해석했습니다.`
-        : `${profileCopy[profile]} 기준으로 유동성, 추세, 변동성의 기본 균형을 보는 조건식으로 해석했습니다.`,
+        : `${profileCopy[profile]} 기준으로 입력 문장에서 직접 드러난 조건을 찾는 구조로 해석했습니다.`,
     reading:
       input.length > 0
         ? `"${input}" 문장을 조건검색 지표 중심으로 분해했습니다. 실제 종목 데이터 조회 없이 조건 구조만 만듭니다.`
-        : "입력 문장이 비어 있어 기본 균형형 조건 예시를 표시합니다.",
+        : "입력 문장이 비어 있어 조건식으로 변환할 표현이 아직 없습니다.",
     matchedPhrases,
     interpretationSummary,
     alternativeInterpretations,

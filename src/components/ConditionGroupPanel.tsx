@@ -9,7 +9,7 @@ type ConditionGroupPanelProps = {
 };
 
 export function ConditionGroupPanel({ conditions }: ConditionGroupPanelProps) {
-  const { userExpressionConditions, defaultFilterConditions } =
+  const { userExpressionConditions, selectedFilterConditions } =
     splitConditionsBySource(conditions);
 
   return (
@@ -26,10 +26,10 @@ export function ConditionGroupPanel({ conditions }: ConditionGroupPanelProps) {
         />
 
         <ConditionGroup
-          title="기본 안전 필터"
-          description="사용자 표현에서 직접 나온 조건은 아니지만, 너무 거래가 얇거나 변동성이 큰 항목을 줄이기 위한 기본 필터입니다."
-          conditions={defaultFilterConditions}
-          emptyText="기본 안전 필터가 없습니다."
+          title="사용자 선택 필터"
+          description="기본값은 꺼져 있으며, 사용자가 직접 켠 항목만 조건식에 추가됩니다."
+          conditions={selectedFilterConditions}
+          emptyText="켜진 사용자 선택 필터가 없습니다."
         />
       </div>
     </ResultBlock>

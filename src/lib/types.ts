@@ -8,7 +8,10 @@ export type ConditionCategory =
   | "growth"
   | "risk";
 
-export type ConditionSource = "user_expression" | "default_filter";
+export type ConditionSource =
+  | "user_expression"
+  | "user_selected_filter"
+  | "risk_notice";
 
 export type MachineQuery =
   | {

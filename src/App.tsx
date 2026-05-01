@@ -14,9 +14,22 @@ import { profileOptions } from "./components/ProfileSelector";
 import { QuickPrompts } from "./components/QuickPrompts";
 import { ResultBlock } from "./components/ResultBlock";
 import { ResultSummary } from "./components/ResultSummary";
+import { RiskFactorPanel } from "./components/RiskFactorPanel";
+import { SelectableFilterPanel } from "./components/SelectableFilterPanel";
 import { TranslationConclusionCard } from "./components/TranslationConclusionCard";
+import { indicatorCatalog } from "./lib/indicatorCatalog";
+import {
+  buildSelectedFilterConditions,
+  getSelectedFilterSnapshots,
+  type SelectableFilterId,
+} from "./lib/selectableFilters";
 import { translateQuery } from "./lib/translator";
-import type { RiskProfile, TranslationResult } from "./lib/types";
+import { getRiskFactors } from "./lib/resultPresentation";
+import type {
+  IndicatorExplanation,
+  RiskProfile,
+  TranslationResult,
+} from "./lib/types";
 
 const starterPrompts = [
   "평균에서 너무 멀지 않고 거래가 붙는 조건",
@@ -38,11 +51,47 @@ function App() {
   const [resultInput, setResultInput] = useState(query);
   const [resultProfile, setResultProfile] = useState<RiskProfile>(profile);
   const [feedbackRefreshKey, setFeedbackRefreshKey] = useState(0);
+  const [selectedFilterIds, setSelectedFilterIds] = useState<SelectableFilterId[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const conditionCount = result?.conditions.length ?? 0;
-  const indicatorCount = result?.explanations.length ?? 0;
+  const selectedFilterConditions = useMemo(
+    () =>
+      result
+        ? buildSelectedFilterConditions(selectedFilterIds, resultProfile)
+        : [],
+    [result, resultProfile, selectedFilterIds],
+  );
+
+  const visibleConditions = useMemo(
+    () => (result ? [...result.conditions, ...selectedFilterConditions] : []),
+    [result, selectedFilterConditions],
+  );
+
+  const visibleExplanations = useMemo(() => {
+    const keys = Array.from(
+      new Set(visibleConditions.map((condition) => condition.indicatorKey)),
+    );
+
+    return keys
+      .map((key) => indicatorCatalog[key])
+      .filter((item): item is IndicatorExplanation => Boolean(item));
+  }, [visibleConditions]);
+
+  const riskFactors = useMemo(
+    () => getRiskFactors(selectedFilterIds),
+    [selectedFilterIds],
+  );
+
+  const selectedFilterSnapshots = useMemo(
+    () => getSelectedFilterSnapshots(selectedFilterIds),
+    [selectedFilterIds],
+  );
+
+  const conditionCount = visibleConditions.length;
+  const indicatorCount = visibleExplanations.length;
 
   const selectedProfile = useMemo(
     () => profileOptions.find((option) => option.id === profile)!,
@@ -157,7 +206,10 @@ function App() {
               <div className="space-y-5">
                 <TranslationConclusionCard result={result} />
 
-                <PlainLanguageSummaryPanel conditions={result.conditions} />
+                <PlainLanguageSummaryPanel
+                  conditions={visibleConditions}
+                  riskFactors={riskFactors}
+                />
 
                 <ResultSummary intent={result.intent} reading={result.reading} />
 
@@ -176,16 +228,25 @@ function App() {
                   alternatives={result.alternativeInterpretations}
                 />
 
-                <ConditionGroupPanel conditions={result.conditions} />
+                <RiskFactorPanel factors={riskFactors} />
+
+                <SelectableFilterPanel
+                  selectedFilterIds={selectedFilterIds}
+                  onChange={setSelectedFilterIds}
+                />
+
+                <ConditionGroupPanel conditions={visibleConditions} />
 
                 <IndicatorExplanationPanel
-                  explanations={result.explanations}
+                  explanations={visibleExplanations}
                 />
 
                 <FeedbackPanel
+                  conditions={visibleConditions}
                   input={resultInput}
                   profile={resultProfile}
                   result={result}
+                  selectedFilters={selectedFilterSnapshots}
                   onSaved={() => setFeedbackRefreshKey((current) => current + 1)}
                 />
               </div>

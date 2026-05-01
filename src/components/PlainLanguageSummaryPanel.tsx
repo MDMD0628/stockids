@@ -1,16 +1,21 @@
 import { ListChecks } from "lucide-react";
 import type { SearchCondition } from "../lib/types";
-import { buildPlainLanguageBullets } from "../lib/resultPresentation";
+import {
+  buildPlainLanguageBullets,
+  type RiskFactor,
+} from "../lib/resultPresentation";
 import { ResultBlock } from "./ResultBlock";
 
 type PlainLanguageSummaryPanelProps = {
   conditions: SearchCondition[];
+  riskFactors: RiskFactor[];
 };
 
 export function PlainLanguageSummaryPanel({
   conditions,
+  riskFactors,
 }: PlainLanguageSummaryPanelProps) {
-  const bullets = buildPlainLanguageBullets(conditions);
+  const bullets = buildPlainLanguageBullets(conditions, riskFactors);
 
   return (
     <ResultBlock

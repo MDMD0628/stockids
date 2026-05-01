@@ -18,6 +18,12 @@ export type FeedbackWrongReason =
   | "조건이 너무 적음"
   | "직접 입력";
 
+export type FeedbackSelectedFilter = {
+  id: string;
+  label: string;
+  enabled: boolean;
+};
+
 export type FeedbackRecord = {
   id: string;
   input: string;
@@ -34,6 +40,7 @@ export type FeedbackRecord = {
     | "balanced"
     | "too_aggressive";
   conditionCountFeedback?: "too_many" | "balanced" | "too_few";
+  selectedFilters?: FeedbackSelectedFilter[];
   comment?: string;
   createdAt: string;
 };
