@@ -2,6 +2,7 @@ import { indicatorCatalog } from "./indicatorCatalog";
 import type {
   AlternativeInterpretation,
   IndicatorExplanation,
+  MachineQuery,
   MatchedPhrase,
   RiskProfile,
   SearchCondition,
@@ -96,6 +97,18 @@ const createId = () =>
 const hasKeyword = (input: string, group: keyof typeof keywordGroups) =>
   keywordGroups[group].some((word) => input.includes(word));
 
+const numberFromText = (value: string) =>
+  Number(value.replace(/,/g, "").replace(/[^0-9.-]/g, ""));
+
+const percentFromText = (value: string) => numberFromText(value);
+
+const krwFromEok = (value: string) => numberFromText(value) * 100_000_000;
+
+const rangeFromText = (value: string) => {
+  const [min, max] = value.split("~").map((item) => percentFromText(item));
+  return { min, max };
+};
+
 const condition = (
   id: string,
   category: SearchCondition["category"],
@@ -105,6 +118,7 @@ const condition = (
   value: string,
   reason: string,
   indicatorKey: string,
+  machineQuery: MachineQuery,
 ): SearchCondition => ({
   id,
   category,
@@ -115,6 +129,7 @@ const condition = (
   display: `${metric} ${operator} ${value}`,
   reason,
   indicatorKey,
+  machineQuery,
 });
 
 const phraseDictionary: PhraseRule[] = [
@@ -154,6 +169,7 @@ const phraseDictionary: PhraseRule[] = [
         "볼린저밴드(20,2) 상단~하단",
         "평균 범위에서 과하게 벗어난 구간을 줄이기 위한 조건입니다.",
         "bollingerBand",
+        { field: "close", operator: "insideBand", band: "bollinger_20_2" },
       ),
       condition(
         "phrase-ma-distance",
@@ -164,6 +180,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.maDistanceRange,
         "현재 가격이 기준 평균에서 지나치게 멀어지지 않았는지 확인합니다.",
         "maDistance",
+        {
+          field: "ma20_distance_pct",
+          operator: "between",
+          ...rangeFromText(defaults.maDistanceRange),
+          unit: "percent",
+        },
       ),
       condition(
         "phrase-rsi-ceiling",
@@ -174,6 +196,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.rsiCeiling,
         "흐름 강도가 한쪽으로 과하게 쏠린 구간을 줄이기 위한 조건입니다.",
         "rsi",
+        {
+          field: "rsi_14",
+          operator: "<=",
+          value: numberFromText(defaults.rsiCeiling),
+          unit: "ratio",
+        },
       ),
     ],
   },
@@ -214,6 +242,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.recentReturnCap,
         "짧은 기간에 가격 변화가 과해진 구간을 줄이기 위한 조건입니다.",
         "recentReturn",
+        {
+          field: "return_20d_pct",
+          operator: "<=",
+          value: percentFromText(defaults.recentReturnCap),
+          unit: "percent",
+        },
       ),
       condition(
         "phrase-overheat-rsi-cap",
@@ -224,6 +258,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.rsiCeiling,
         "가격 흐름의 강도가 과하게 높은 구간을 줄입니다.",
         "rsi",
+        {
+          field: "rsi_14",
+          operator: "<=",
+          value: numberFromText(defaults.rsiCeiling),
+          unit: "ratio",
+        },
       ),
       condition(
         "phrase-bollinger-upper-limit",
@@ -234,6 +274,12 @@ const phraseDictionary: PhraseRule[] = [
         "102%",
         "밴드 상단을 과하게 벗어난 구간을 제외하는 조건입니다.",
         "bollingerBand",
+        {
+          field: "close_to_bollinger_upper_pct",
+          operator: "<=",
+          value: 102,
+          unit: "percent",
+        },
       ),
     ],
   },
@@ -273,6 +319,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.volumeAcceleration,
         "최근 거래가 이전 평균보다 늘어나는지 확인합니다.",
         "volume",
+        {
+          field: "avg_volume_5d_to_20d_pct",
+          operator: ">=",
+          value: percentFromText(defaults.volumeAcceleration),
+          unit: "percent",
+        },
       ),
       condition(
         "phrase-short-ma-break",
@@ -283,6 +335,7 @@ const phraseDictionary: PhraseRule[] = [
         "20일 이동평균선",
         "짧은 흐름이 중기 흐름 위로 올라오는지 확인합니다.",
         "movingAverage",
+        { field: "ma5", operator: ">=", value: "ma20" },
       ),
       condition(
         "phrase-macd-turn",
@@ -293,6 +346,7 @@ const phraseDictionary: PhraseRule[] = [
         "0",
         "단기 흐름의 힘이 이전보다 붙는지 보는 보조 조건입니다.",
         "macd",
+        { field: "macd_histogram", operator: ">=", value: 0, unit: "ratio" },
       ),
     ],
   },
@@ -332,6 +386,7 @@ const phraseDictionary: PhraseRule[] = [
         "60일 이동평균선",
         "중기 흐름 기준선 아래로 내려간 구간을 줄입니다.",
         "movingAverage",
+        { field: "close", operator: ">=", value: "ma60" },
       ),
       condition(
         "phrase-no-new-low",
@@ -342,6 +397,12 @@ const phraseDictionary: PhraseRule[] = [
         "아님",
         "최근 저점을 새로 낮춘 구간을 제외하는 조건입니다.",
         "highLowBreakout",
+        {
+          field: "is_60d_new_low",
+          operator: "=",
+          value: false,
+          unit: "boolean",
+        },
       ),
       condition(
         "phrase-not-reverse-alignment",
@@ -352,6 +413,7 @@ const phraseDictionary: PhraseRule[] = [
         "60일 이동평균선",
         "단기와 중기 흐름이 완전히 아래로 정렬된 상태를 줄입니다.",
         "movingAverageAlignment",
+        { field: "ma20", operator: ">=", value: "ma60" },
       ),
     ],
   },
@@ -385,6 +447,7 @@ const phraseDictionary: PhraseRule[] = [
         "60일 이동평균선",
         "중기 흐름은 유지되는지 확인합니다.",
         "movingAverageAlignment",
+        { field: "ma20", operator: ">=", value: "ma60" },
       ),
       condition(
         "phrase-pullback-short-rest",
@@ -395,6 +458,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.pullbackReturnRange,
         "단기적으로 쉬어 가는 상태를 수치 범위로 표현합니다.",
         "pullback",
+        {
+          field: "return_5d_pct",
+          operator: "between",
+          ...rangeFromText(defaults.pullbackReturnRange),
+          unit: "percent",
+        },
       ),
       condition(
         "phrase-pullback-rsi-neutral",
@@ -405,6 +474,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.pullbackRsiRange,
         "과하게 식거나 과하게 뜨거운 상태를 피하기 위한 보조 조건입니다.",
         "rsi",
+        {
+          field: "rsi_14",
+          operator: "between",
+          ...rangeFromText(defaults.pullbackRsiRange),
+          unit: "ratio",
+        },
       ),
     ],
   },
@@ -432,6 +507,12 @@ const phraseDictionary: PhraseRule[] = [
         "양봉 연속",
         "짧은 기간에 캔들 흐름이 이어지는지 확인합니다.",
         "threeWhiteSoldiers",
+        {
+          field: "is_three_white_soldiers",
+          operator: "=",
+          value: true,
+          unit: "boolean",
+        },
       ),
       condition(
         "phrase-three-white-rsi",
@@ -442,6 +523,12 @@ const phraseDictionary: PhraseRule[] = [
         defaults.rsiCeiling,
         "패턴이 나타나더라도 흐름 강도가 과한 구간은 줄입니다.",
         "rsi",
+        {
+          field: "rsi_14",
+          operator: "<=",
+          value: numberFromText(defaults.rsiCeiling),
+          unit: "ratio",
+        },
       ),
     ],
   },
@@ -544,6 +631,12 @@ export const translateWithMock = (
       defaults.minTradingValue,
       "조건식 결과가 거래가 너무 얇은 구간에 몰리지 않도록 기본 유동성 기준을 둡니다.",
       "volume",
+      {
+        field: "avg_trading_value_20d_krw",
+        operator: ">=",
+        value: krwFromEok(defaults.minTradingValue),
+        unit: "krw",
+      },
     ),
   );
 
@@ -558,6 +651,12 @@ export const translateWithMock = (
         defaults.minMarketCap,
         "안정감, 대형, 꾸준함 같은 표현을 기업 규모 기준으로 정리합니다.",
         "marketCap",
+        {
+          field: "market_cap_krw",
+          operator: ">=",
+          value: krwFromEok(defaults.minMarketCap),
+          unit: "krw",
+        },
       ),
       condition(
         "risk-volatility",
@@ -568,6 +667,16 @@ export const translateWithMock = (
         wantsShortTerm ? profileDefaults.aggressive.maxVolatility : defaults.maxVolatility,
         "가격 흔들림이 과한 구간을 줄여 사용자가 말한 안정감에 맞춥니다.",
         "volatility",
+        {
+          field: "volatility_60d_pct",
+          operator: "<=",
+          value: percentFromText(
+            wantsShortTerm
+              ? profileDefaults.aggressive.maxVolatility
+              : defaults.maxVolatility,
+          ),
+          unit: "percent",
+        },
       ),
     ]);
   }
@@ -583,6 +692,12 @@ export const translateWithMock = (
         defaults.volumeSpike,
         "관심이 늘어난 흐름을 거래량 변화로 표현합니다.",
         "volume",
+        {
+          field: "volume_today_to_avg_20d_pct",
+          operator: ">=",
+          value: percentFromText(defaults.volumeSpike),
+          unit: "percent",
+        },
       ),
       condition(
         "trend-short-return",
@@ -593,6 +708,12 @@ export const translateWithMock = (
         defaults.shortReturn,
         "강한 흐름이나 단기 탄력이라는 표현을 최근 가격 흐름 조건으로 바꿉니다.",
         "recentReturn",
+        {
+          field: "return_20d_pct",
+          operator: ">=",
+          value: percentFromText(defaults.shortReturn),
+          unit: "percent",
+        },
       ),
     ]);
   }
@@ -607,6 +728,7 @@ export const translateWithMock = (
       "60일 이동평균선",
       "단기 흐름이 중기 흐름보다 위에 있는지 확인해 조건의 방향성을 정리합니다.",
       "movingAverageAlignment",
+      { field: "ma20", operator: ">", value: "ma60" },
     ),
     condition(
       "risk-rsi",
@@ -617,6 +739,12 @@ export const translateWithMock = (
       defaults.rsiRange,
       "흐름의 강도를 보되 한쪽으로 과하게 쏠린 구간을 줄이기 위한 보조 조건입니다.",
       "rsi",
+      {
+        field: "rsi_14",
+        operator: "between",
+        ...rangeFromText(defaults.rsiRange),
+        unit: "ratio",
+      },
     ),
   ]);
 
@@ -635,6 +763,12 @@ export const translateWithMock = (
         defaults.revenueGrowth,
         "성장이나 실적 개선이라는 표현을 매출의 방향성으로 정량화합니다.",
         "fundamentals",
+        {
+          field: "revenue_growth_recent_quarter_pct",
+          operator: ">=",
+          value: percentFromText(defaults.revenueGrowth),
+          unit: "percent",
+        },
       ),
       condition(
         "growth-operating-profit",
@@ -645,6 +779,12 @@ export const translateWithMock = (
         defaults.operatingGrowth,
         "사업 성과가 함께 개선되는지를 별도 조건으로 확인합니다.",
         "fundamentals",
+        {
+          field: "operating_profit_growth_recent_quarter_pct",
+          operator: ">=",
+          value: percentFromText(defaults.operatingGrowth),
+          unit: "percent",
+        },
       ),
     ]);
   }
@@ -660,6 +800,12 @@ export const translateWithMock = (
         defaults.maxPer,
         "가격 부담이 낮은 편이라는 표현을 이익 대비 가격 기준으로 바꿉니다.",
         "valuation",
+        {
+          field: "per",
+          operator: "<=",
+          value: numberFromText(defaults.maxPer),
+          unit: "ratio",
+        },
       ),
       condition(
         "valuation-pbr",
@@ -670,6 +816,12 @@ export const translateWithMock = (
         defaults.maxPbr,
         "자산 기준에서 과도하게 높지 않은 구간을 찾는 조건입니다.",
         "valuation",
+        {
+          field: "pbr",
+          operator: "<=",
+          value: numberFromText(defaults.maxPbr),
+          unit: "ratio",
+        },
       ),
     ]);
   }

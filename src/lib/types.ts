@@ -8,6 +8,26 @@ export type ConditionCategory =
   | "growth"
   | "risk";
 
+export type MachineQuery =
+  | {
+      field: string;
+      operator: ">=" | "<=" | ">" | "<" | "=";
+      value: number | string | boolean;
+      unit?: "percent" | "krw" | "ratio" | "boolean";
+    }
+  | {
+      field: string;
+      operator: "between";
+      min: number;
+      max: number;
+      unit?: "percent" | "krw" | "ratio";
+    }
+  | {
+      field: string;
+      operator: "insideBand";
+      band: "bollinger_20_2";
+    };
+
 export type SearchCondition = {
   id: string;
   category: ConditionCategory;
@@ -18,6 +38,7 @@ export type SearchCondition = {
   display: string;
   reason: string;
   indicatorKey: string;
+  machineQuery: MachineQuery;
 };
 
 export type IndicatorExplanation = {

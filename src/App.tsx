@@ -364,6 +364,14 @@ function App() {
                         <p className="break-keep text-sm font-bold leading-6">
                           {item.display}
                         </p>
+                        <details className="mt-3 rounded-lg border border-ink/10 bg-white">
+                          <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-ink/60 transition hover:text-pool">
+                            실행용 조건 보기
+                          </summary>
+                          <pre className="max-h-48 overflow-auto border-t border-ink/10 p-3 text-xs leading-5 text-ink/70">
+                            {JSON.stringify(item.machineQuery, null, 2)}
+                          </pre>
+                        </details>
                       </div>
                     ))}
                   </div>
