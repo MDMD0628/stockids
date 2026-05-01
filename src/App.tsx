@@ -16,6 +16,7 @@ import { ResultBlock } from "./components/ResultBlock";
 import { ResultSummary } from "./components/ResultSummary";
 import { RiskFactorPanel } from "./components/RiskFactorPanel";
 import { SelectableFilterPanel } from "./components/SelectableFilterPanel";
+import { SuggestionInboxPanel } from "./components/SuggestionInboxPanel";
 import { TranslationConclusionCard } from "./components/TranslationConclusionCard";
 import { indicatorCatalog } from "./lib/indicatorCatalog";
 import {
@@ -51,6 +52,7 @@ function App() {
   const [resultInput, setResultInput] = useState(query);
   const [resultProfile, setResultProfile] = useState<RiskProfile>(profile);
   const [feedbackRefreshKey, setFeedbackRefreshKey] = useState(0);
+  const [suggestionInboxRefreshKey, setSuggestionInboxRefreshKey] = useState(0);
   const [selectedFilterIds, setSelectedFilterIds] = useState<SelectableFilterId[]>(
     [],
   );
@@ -255,7 +257,20 @@ function App() {
 
           <FeedbackLogPanel refreshKey={feedbackRefreshKey} />
 
-          <LearningSuggestionPanel refreshKey={feedbackRefreshKey} />
+          <LearningSuggestionPanel
+            inboxRefreshKey={suggestionInboxRefreshKey}
+            refreshKey={feedbackRefreshKey}
+            onInboxChange={() =>
+              setSuggestionInboxRefreshKey((current) => current + 1)
+            }
+          />
+
+          <SuggestionInboxPanel
+            refreshKey={suggestionInboxRefreshKey}
+            onChange={() =>
+              setSuggestionInboxRefreshKey((current) => current + 1)
+            }
+          />
 
           <DisclaimerBar />
         </section>

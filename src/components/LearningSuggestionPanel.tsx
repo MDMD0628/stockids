@@ -1,4 +1,4 @@
-import { Check, ClipboardCopy, Lightbulb } from "lucide-react";
+import { Archive, Check, ClipboardCopy, Lightbulb } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { getFeedbackRecords, type FeedbackRecord } from "../lib/feedback";
 import {
@@ -6,8 +6,15 @@ import {
   type LearningSuggestion,
 } from "../lib/learning";
 import { phraseDictionary } from "../lib/phraseDictionary";
+import {
+  getSavedSuggestions,
+  saveSuggestion,
+  type SavedSuggestion,
+} from "../lib/suggestionInbox";
 
 type LearningSuggestionPanelProps = {
+  inboxRefreshKey: number;
+  onInboxChange: () => void;
   refreshKey: number;
 };
 
@@ -44,18 +51,31 @@ const copyText = async (text: string) => {
 };
 
 export function LearningSuggestionPanel({
+  inboxRefreshKey,
+  onInboxChange,
   refreshKey,
 }: LearningSuggestionPanelProps) {
   const [records, setRecords] = useState<FeedbackRecord[]>([]);
+  const [savedSuggestions, setSavedSuggestions] = useState<SavedSuggestion[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [savedId, setSavedId] = useState<string | null>(null);
 
   useEffect(() => {
     setRecords(getFeedbackRecords());
   }, [refreshKey]);
 
+  useEffect(() => {
+    setSavedSuggestions(getSavedSuggestions());
+  }, [inboxRefreshKey]);
+
   const suggestions = useMemo(
     () => analyzeFeedback(records, phraseDictionary),
     [records],
+  );
+
+  const savedSuggestionIds = useMemo(
+    () => new Set(savedSuggestions.map((suggestion) => suggestion.suggestionId)),
+    [savedSuggestions],
   );
 
   const copyPrompt = async (suggestion: LearningSuggestion) => {
@@ -65,6 +85,14 @@ export function LearningSuggestionPanel({
       setCopiedId(suggestion.id);
       window.setTimeout(() => setCopiedId(null), 1500);
     }
+  };
+
+  const addToInbox = (suggestion: LearningSuggestion) => {
+    const savedSuggestion = saveSuggestion(suggestion);
+    setSavedSuggestions(getSavedSuggestions());
+    setSavedId(savedSuggestion.suggestionId);
+    window.setTimeout(() => setSavedId(null), 1500);
+    onInboxChange();
   };
 
   return (
@@ -121,18 +149,37 @@ export function LearningSuggestionPanel({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => void copyPrompt(suggestion)}
-                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-ink/10 bg-white px-3 text-sm font-bold text-ink transition hover:border-pool hover:text-pool"
-                >
-                  {copiedId === suggestion.id ? (
-                    <Check size={16} aria-hidden="true" />
-                  ) : (
-                    <ClipboardCopy size={16} aria-hidden="true" />
-                  )}
-                  {copiedId === suggestion.id ? "복사됨" : "프롬프트 복사"}
-                </button>
+                <div className="flex flex-col gap-2 sm:flex-row md:flex-col lg:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => addToInbox(suggestion)}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-ink/10 bg-white px-3 text-sm font-bold text-ink transition hover:border-pine hover:text-pine"
+                  >
+                    {savedSuggestionIds.has(suggestion.id) ||
+                    savedId === suggestion.id ? (
+                      <Check size={16} aria-hidden="true" />
+                    ) : (
+                      <Archive size={16} aria-hidden="true" />
+                    )}
+                    {savedSuggestionIds.has(suggestion.id) ||
+                    savedId === suggestion.id
+                      ? "저장됨"
+                      : "저장함에 추가"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => void copyPrompt(suggestion)}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-ink/10 bg-white px-3 text-sm font-bold text-ink transition hover:border-pool hover:text-pool"
+                  >
+                    {copiedId === suggestion.id ? (
+                      <Check size={16} aria-hidden="true" />
+                    ) : (
+                      <ClipboardCopy size={16} aria-hidden="true" />
+                    )}
+                    {copiedId === suggestion.id ? "복사됨" : "프롬프트 복사"}
+                  </button>
+                </div>
               </div>
 
               <div className="mt-4 grid gap-3 md:grid-cols-2">
