@@ -3,6 +3,8 @@ import { ArrowRight, BarChart3, SlidersHorizontal } from "lucide-react";
 import { AlternativeInterpretationPanel } from "./components/AlternativeInterpretationPanel";
 import { ConditionCard } from "./components/ConditionCard";
 import { DisclaimerBar } from "./components/DisclaimerBar";
+import { FeedbackLogPanel } from "./components/FeedbackLogPanel";
+import { FeedbackPanel } from "./components/FeedbackPanel";
 import { IndicatorExplanationPanel } from "./components/IndicatorExplanationPanel";
 import { InputPanel } from "./components/InputPanel";
 import { MatchedPhrasePanel } from "./components/MatchedPhrasePanel";
@@ -30,6 +32,9 @@ function App() {
   const [query, setQuery] = useState(starterPrompts[0]);
   const [profile, setProfile] = useState<RiskProfile>("balanced");
   const [result, setResult] = useState<TranslationResult | null>(null);
+  const [resultInput, setResultInput] = useState(query);
+  const [resultProfile, setResultProfile] = useState<RiskProfile>(profile);
+  const [feedbackRefreshKey, setFeedbackRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +53,8 @@ function App() {
     try {
       const translated = await translateQuery(nextQuery, nextProfile);
       setResult(translated);
+      setResultInput(nextQuery);
+      setResultProfile(nextProfile);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -177,9 +184,18 @@ function App() {
                   conditions={result.conditions}
                   explanations={result.explanations}
                 />
+
+                <FeedbackPanel
+                  input={resultInput}
+                  profile={resultProfile}
+                  result={result}
+                  onSaved={() => setFeedbackRefreshKey((current) => current + 1)}
+                />
               </div>
             )}
           </div>
+
+          <FeedbackLogPanel refreshKey={feedbackRefreshKey} />
 
           <DisclaimerBar />
         </section>
