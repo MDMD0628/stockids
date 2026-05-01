@@ -7,6 +7,7 @@ import { FeedbackLogPanel } from "./components/FeedbackLogPanel";
 import { FeedbackPanel } from "./components/FeedbackPanel";
 import { IndicatorExplanationPanel } from "./components/IndicatorExplanationPanel";
 import { InputPanel } from "./components/InputPanel";
+import { LearningSuggestionPanel } from "./components/LearningSuggestionPanel";
 import { MatchedPhrasePanel } from "./components/MatchedPhrasePanel";
 import { profileOptions } from "./components/ProfileSelector";
 import { QuickPrompts } from "./components/QuickPrompts";
@@ -196,6 +197,8 @@ function App() {
           </div>
 
           <FeedbackLogPanel refreshKey={feedbackRefreshKey} />
+
+          <LearningSuggestionPanel refreshKey={feedbackRefreshKey} />
 
           <DisclaimerBar />
         </section>
