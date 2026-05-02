@@ -69,6 +69,115 @@ const keywordMappings: KeywordMapping[] = [
     ],
   },
   {
+    keywords: ["시장이 모르는", "관심 덜 받은", "숨어 있는", "숨은", "조용한", "주목받기 전"],
+    targetRuleId: "under-the-radar-quality",
+    title: "시장 관심도 낮은 실적 표현 추가 후보",
+    description:
+      "실적은 보되 시장 관심도 과열은 낮게 보고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["실적 개선", "최근 상승률", "거래량 과열 여부"],
+    suggestedConditionHints: [
+      "최근 분기 매출 증가율",
+      "TTM 영업이익 > 0",
+      "20일 상승률 상한",
+      "거래량 과열 여부는 대체 지표로 확인",
+    ],
+  },
+  {
+    keywords: ["만년 저평가", "저평가 함정", "싸지만 죽은", "계속 소외", "반응 없는", "계속 빠지는"],
+    targetRuleId: "value-trap-avoidance",
+    title: "밸류트랩 회피 표현 추가 후보",
+    description:
+      "낮은 밸류 부담만 보지 않고 차트 훼손과 장기 소외 위험을 줄이고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["PER", "PBR", "60일선 회복", "거래량 회복", "신저가 이탈 제외"],
+    suggestedConditionHints: [
+      "PER/PBR 상한",
+      "종가 >= 60일선",
+      "5일 평균 거래량 / 20일 평균 거래량",
+      "60일 신저가 아님",
+    ],
+  },
+  {
+    keywords: ["실적", "숫자", "돈은 잘 버", "발표", "덜 오른", "안 오른", "가격 부담 낮은", "고점은 아닌", "과열은 아닌"],
+    targetRuleId: "earnings-quality-low-price-reaction",
+    title: "실적 개선 + 가격 과열 완화 표현 추가 후보",
+    description:
+      "실적 개선과 최근 가격 과열 제한을 함께 말한 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["매출 증가율", "영업이익 증가율", "TTM 영업이익", "최근 상승률", "RSI"],
+    suggestedConditionHints: [
+      "최근 분기 매출 증가율",
+      "최근 분기 영업이익 증가율",
+      "20일 상승률 상한",
+      "RSI 상한",
+    ],
+  },
+  {
+    keywords: ["턴어라운드", "다시 좋아지는", "바닥 찍고", "회복", "돌아서는"],
+    targetRuleId: "turnaround-recovery",
+    title: "실적 회복 표현 추가 후보",
+    description:
+      "매출 또는 이익이 바닥을 지나 회복되는 느낌의 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["흑자전환", "영업이익률 개선", "매출 회복", "영업이익 회복"],
+    suggestedConditionHints: [
+      "영업이익 흑자전환 여부",
+      "영업이익률 변화 > 0",
+      "최근 분기 매출 증가율 >= 0",
+    ],
+  },
+  {
+    keywords: ["매출", "팔리는", "장사", "수요", "제품"],
+    targetRuleId: "revenue-growth",
+    title: "매출 성장 표현 추가 후보",
+    description:
+      "외형 성장이나 매출 회복을 말한 표현을 매출 성장 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["최근 분기 매출 증가율", "TTM 매출 증가율", "최근 4분기 매출 증가 추세"],
+    suggestedConditionHints: [
+      "최근 분기 매출 YoY 증가율",
+      "TTM 매출 증가율",
+      "이익 조건도 함께 검토",
+    ],
+  },
+  {
+    keywords: ["영업이익", "순이익", "수익성", "흑자전환", "이익률"],
+    targetRuleId: "profit-growth",
+    title: "이익 개선 표현 추가 후보",
+    description:
+      "사업 수익성이나 이익 개선을 말한 표현을 이익 개선 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["영업이익 증가율", "순이익 증가율", "영업이익률 개선", "TTM 영업이익"],
+    suggestedConditionHints: [
+      "최근 분기 영업이익 증가율",
+      "최근 분기 순이익 증가율",
+      "영업이익률 변화 > 0",
+    ],
+  },
+  {
+    keywords: ["가격 부담", "비싸지", "밸류 부담", "실적 대비 가격", "기대감 반영"],
+    targetRuleId: "valuation-burden-low",
+    title: "밸류 부담 완화 표현 추가 후보",
+    description:
+      "실적이나 자산 대비 가격 부담을 줄이고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["PER", "PBR", "최근 상승률", "RSI", "신고가 근접 위험 표시"],
+    suggestedConditionHints: [
+      "PER 상한",
+      "PBR 상한",
+      "20일 상승률 상한",
+      "RSI 상한",
+    ],
+  },
+  {
+    keywords: ["저평가", "싼데", "PER", "PBR", "밸류", "차트", "추세", "흐름"],
+    targetRuleId: "value-with-technical-confirmation",
+    title: "밸류 + 차트 확인 표현 추가 후보",
+    description:
+      "밸류 부담과 차트 훼손 여부를 함께 확인하고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["PER", "PBR", "ROE", "이동평균선", "신저가", "거래량 회복"],
+    suggestedConditionHints: [
+      "PER/PBR 상한",
+      "ROE 하한",
+      "20일선 >= 60일선",
+      "60일 신저가 아님",
+    ],
+  },
+  {
     keywords: ["안정", "상승", "우상향", "꾸준히", "흐름", "차트"],
     targetRuleId: "stable-uptrend",
     title: "추세 안정성 표현 추가 후보",

@@ -74,6 +74,10 @@ const directFilterKeywords: Record<SelectableFilterId, string[]> = {
     "빚 많은",
   ],
   theme_overheat: ["테마", "뉴스 하나", "이슈", "재료", "기대감", "묻지마"],
+  consecutive_loss: ["연속 적자", "적자만", "계속 적자", "돈 못 버는"],
+  valuation_burden: ["밸류 부담", "가격 부담", "비싸", "기대감 반영", "PER", "PBR"],
+  damaged_chart: ["차트 훼손", "차트 망가", "죽은 차트", "계속 빠지는", "신저가"],
+  quiet_volume: ["거래량 너무 조용", "거래가 너무 없는", "거래 없는", "계속 소외"],
   recent_runup: ["최근 급등", "너무 오른", "과열", "고점", "추격", "상투", "끝물"],
 };
 
@@ -351,18 +355,44 @@ export const translateWithMock = (
     );
   }
 
-  const wantsMomentum = wantsStableUptrend
-    ? hasAny(normalized, explicitActivityWords)
-    : hasKeyword(normalized, "momentum");
-  const wantsGrowth = hasKeyword(normalized, "growth");
-  const wantsValue = hasKeyword(normalized, "value");
   const wantsShortTerm =
     hasKeyword(normalized, "shortTerm") &&
     !(wantsStableUptrend && normalized.includes("급등락 없이"));
   const phraseRuleIds = new Set(phraseMatches.map(({ rule }) => rule.id));
+  const hasGrowthValueSpecificRule = [
+    "earnings-quality-low-price-reaction",
+    "value-with-technical-confirmation",
+    "revenue-growth",
+    "profit-growth",
+    "valuation-burden-low",
+    "under-the-radar-quality",
+    "turnaround-recovery",
+    "value-trap-avoidance",
+  ].some((ruleId) => phraseRuleIds.has(ruleId));
+  const wantsMomentum = wantsStableUptrend
+    ? hasAny(normalized, explicitActivityWords)
+    : hasKeyword(normalized, "momentum");
+  const wantsGrowth = hasKeyword(normalized, "growth") && !hasGrowthValueSpecificRule;
+  const wantsValue = hasKeyword(normalized, "value") && !hasGrowthValueSpecificRule;
   const directFilterIds = getDirectFilterIds(normalized).filter(
     (filterId) =>
       !(filterId === "recent_runup" && phraseRuleIds.has("overheat-avoidance")) &&
+      !(
+        (filterId === "recent_runup" || filterId === "valuation_burden") &&
+        (phraseRuleIds.has("earnings-quality-low-price-reaction") ||
+          phraseRuleIds.has("valuation-burden-low"))
+      ) &&
+      !(
+        (filterId === "damaged_chart" || filterId === "quiet_volume") &&
+        (phraseRuleIds.has("value-with-technical-confirmation") ||
+          phraseRuleIds.has("value-trap-avoidance"))
+      ) &&
+      !(
+        (filterId === "deficit_company" || filterId === "consecutive_loss") &&
+        (phraseRuleIds.has("profit-growth") ||
+          phraseRuleIds.has("turnaround-recovery") ||
+          phraseRuleIds.has("financial-distress-avoidance"))
+      ) &&
       !(
         filterId === "high_volatility" &&
         (phraseRuleIds.has("volatility-risk-avoidance") ||

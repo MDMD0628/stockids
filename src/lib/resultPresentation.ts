@@ -66,6 +66,10 @@ const conditionEasyCopy: Record<string, string> = {
   "filter-deficit-company": "최근 영업이익이 적자인 기업을 줄입니다.",
   "filter-financial-risk": "재무 위험 신호가 큰 회사를 줄입니다.",
   "filter-theme-overheat": "테마성 과열로 볼 수 있는 가격 과열 구간을 줄입니다.",
+  "filter-consecutive-loss": "연속 적자가 긴 회사를 줄입니다.",
+  "filter-valuation-burden": "실적 대비 가격 부담이 큰 구간을 줄입니다.",
+  "filter-damaged-chart": "중기 기준선 아래에만 머무는 구간을 줄입니다.",
+  "filter-quiet-volume": "거래량이 지나치게 조용한 구간을 줄입니다.",
   "filter-recent-runup": "최근 가격 변화가 과한 종목을 줄입니다.",
 };
 
@@ -80,6 +84,14 @@ const phraseSummaryCopy: Record<string, string> = {
   "fundamental-quality-preference": "본업과 재무 기반이 확인되는",
   "size-liquidity-avoidance": "작은 규모와 저유동성 구간을 줄인",
   "defensive-risk-preference": "상대적으로 변동성과 위험 신호를 줄인",
+  "earnings-quality-low-price-reaction": "실적 개선과 가격 과열 완화를 함께 보는",
+  "value-with-technical-confirmation": "밸류 부담과 차트 흐름을 함께 보는",
+  "revenue-growth": "매출 회복과 외형 성장을 보는",
+  "profit-growth": "이익 개선과 수익성 회복을 보는",
+  "valuation-burden-low": "밸류 부담과 가격 과열을 줄인",
+  "under-the-radar-quality": "실적은 보되 시장 관심도 과열은 줄인",
+  "turnaround-recovery": "실적 회복 신호를 확인하는",
+  "value-trap-avoidance": "밸류 부담과 장기 소외 위험을 함께 보는",
   "broken-chart-exclusion": "흐름이 크게 훼손된 구간은 제외하는",
   pullback: "중기 흐름은 유지하되 잠시 쉬어가는",
   "three-white-soldiers": "양봉 흐름이 이어지는",
@@ -105,6 +117,10 @@ const conditionSummaryCopy: Record<string, string> = {
   "filter-high-volatility": "흔들림을 줄인",
   "filter-financial-risk": "재무 위험 신호를 줄인",
   "filter-theme-overheat": "테마성 과열을 줄인",
+  "filter-consecutive-loss": "연속 적자를 줄인",
+  "filter-valuation-burden": "밸류 부담을 줄인",
+  "filter-damaged-chart": "차트 훼손을 줄인",
+  "filter-quiet-volume": "거래량이 너무 조용한 구간을 줄인",
 };
 
 const riskFactors: RiskFactor[] = [
@@ -149,6 +165,39 @@ const riskFactors: RiskFactor[] = [
     description:
       "실적이 불안정한 기업도 포함될 수 있습니다. 원하면 선택 필터에서 제외할 수 있습니다.",
     relatedFilterId: "deficit_company",
+  },
+  {
+    id: "earnings-price-lag-risk",
+    title: "실적 개선 후 가격 반응 지연 가능성",
+    description:
+      "실적 개선 조건이 있어도 가격 반응은 늦거나 제한적일 수 있습니다. 이 항목은 조건검색 참고용 위험 요소입니다.",
+  },
+  {
+    id: "revenue-profit-gap-risk",
+    title: "매출 증가와 이익 부진의 차이 가능성",
+    description:
+      "매출이 증가해도 비용 증가로 이익이 약할 수 있습니다. 이익 조건을 함께 확인할 수 있습니다.",
+    relatedFilterId: "deficit_company",
+  },
+  {
+    id: "value-trap-risk",
+    title: "장기 소외 가능성",
+    description:
+      "밸류 부담이 낮아 보여도 거래와 차트 흐름이 약하면 장기 소외 구간일 수 있습니다. 원하면 선택 필터에서 제외할 수 있습니다.",
+    relatedFilterId: "quiet_volume",
+  },
+  {
+    id: "market-attention-data-risk",
+    title: "시장 관심도 데이터 제한",
+    description:
+      "현재 MVP에는 뉴스, 커뮤니티, 검색량 데이터가 연결되어 있지 않아 거래량과 최근 가격 반응으로 대체 표시합니다.",
+  },
+  {
+    id: "turnaround-confirmation-risk",
+    title: "실적 회복 확인 지연 가능성",
+    description:
+      "턴어라운드 성격의 조건은 분기 실적 확인 시점이 늦을 수 있어 위험 요소로 별도 표시합니다.",
+    relatedFilterId: "consecutive_loss",
   },
   {
     id: "financial-distress-risk",
@@ -284,6 +333,38 @@ export const buildTranslationCharacter = (result: TranslationResult) => {
 
   if (phraseIds.has("defensive-risk-preference")) {
     return "상대적으로 변동성과 위험 신호를 줄이는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("earnings-quality-low-price-reaction")) {
+    return "실적 개선 조건과 가격 과열을 줄이는 조건을 함께 보는 해석에 가깝습니다.";
+  }
+
+  if (phraseIds.has("value-with-technical-confirmation")) {
+    return "밸류 부담과 차트 훼손 여부를 함께 확인하는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("revenue-growth")) {
+    return "매출 회복이나 외형 성장을 확인하는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("profit-growth")) {
+    return "이익 개선과 수익성 회복을 확인하는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("valuation-burden-low")) {
+    return "실적이나 자산 대비 가격 부담을 낮추는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("under-the-radar-quality")) {
+    return "실적 개선은 보되 시장 관심도가 아직 높지 않은 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("turnaround-recovery")) {
+    return "매출 또는 이익의 회복 신호를 확인하는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("value-trap-avoidance")) {
+    return "낮은 밸류 부담과 차트 훼손, 장기 소외 위험을 함께 줄이는 조건에 가깝습니다.";
   }
 
   if (phraseIds.has("broken-chart-exclusion")) {
