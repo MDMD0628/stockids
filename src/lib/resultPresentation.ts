@@ -26,6 +26,12 @@ const conditionEasyCopy: Record<string, string> = {
   "phrase-volume-acceleration": "최근 거래가 평소보다 늘어난 종목",
   "phrase-short-ma-break": "짧은 흐름이 중기 흐름 위로 올라오는 종목",
   "phrase-macd-turn": "단기 흐름의 힘이 이전보다 붙는 종목",
+  "phrase-stable-uptrend-ma-alignment": "중기 흐름이 아래로 밀리지 않은 종목",
+  "phrase-stable-uptrend-ma-slope": "중기 기준선이 위쪽으로 정돈된 종목",
+  "phrase-stable-uptrend-60d-return": "중기 가격 흐름이 위쪽 방향을 유지한 종목",
+  "phrase-stable-uptrend-volatility": "가격 움직임이 과도하게 흔들리지 않은 종목",
+  "phrase-stable-uptrend-drawdown": "최근 고점에서 크게 밀리지 않은 종목",
+  "phrase-stable-uptrend-runup-cap": "짧은 기간에 과하게 앞서가지 않은 종목",
   "phrase-close-above-60ma": "중기 흐름 기준선 아래로 내려가지 않은 종목",
   "phrase-no-new-low": "최근 저점을 새로 낮추지 않은 종목",
   "phrase-not-reverse-alignment": "흐름이 아래로 정렬되지 않은 종목",
@@ -45,6 +51,7 @@ const phraseSummaryCopy: Record<string, string> = {
   "trend-distance-control": "평균 흐름에서 너무 멀지 않은",
   "overheat-avoidance": "과하게 앞서간 흐름은 줄인",
   "volume-strength-building": "최근 거래 관심이 붙은",
+  "stable-uptrend": "급등락이 크지 않고 중기 상승 흐름이 이어지는",
   "broken-chart-exclusion": "흐름이 크게 훼손된 구간은 제외하는",
   pullback: "중기 흐름은 유지하되 잠시 쉬어가는",
   "three-white-soldiers": "양봉 흐름이 이어지는",
@@ -53,6 +60,9 @@ const phraseSummaryCopy: Record<string, string> = {
 const conditionSummaryCopy: Record<string, string> = {
   "momentum-volume-spike": "최근 거래가 평소보다 활발한",
   "trend-short-return": "최근 흐름이 너무 약하지 않은",
+  "phrase-stable-uptrend-ma-alignment": "중기 상승 흐름을 유지하는",
+  "phrase-stable-uptrend-ma-slope": "중기 기준선이 아래로 꺾이지 않은",
+  "phrase-stable-uptrend-volatility": "급등락을 줄인",
   "growth-revenue": "실적 흐름을 함께 보는",
   "growth-operating-profit": "이익 흐름을 함께 보는",
   "valuation-per": "가격 부담을 줄인",
@@ -188,6 +198,10 @@ export const buildTranslationCharacter = (result: TranslationResult) => {
 
   if (phraseIds.has("overheat-avoidance")) {
     return "과하게 앞서간 흐름을 줄이는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("stable-uptrend")) {
+    return "급등락을 줄이면서 중기 흐름이 이어지는지를 보는 조건에 가깝습니다.";
   }
 
   if (phraseIds.has("broken-chart-exclusion")) {

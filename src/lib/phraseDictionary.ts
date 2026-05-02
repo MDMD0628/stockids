@@ -2,6 +2,7 @@ import {
   buildBrokenChartExclusionConditions,
   buildOverheatAvoidanceConditions,
   buildPullbackConditions,
+  buildStableUptrendConditions,
   buildThreeWhiteSoldiersConditions,
   buildTrendDistanceConditions,
   buildVolumeStrengthConditions,
@@ -107,6 +108,47 @@ export const phraseDictionary: PhraseRule[] = [
       },
     ],
     buildConditions: buildVolumeStrengthConditions,
+  },
+  {
+    id: "stable-uptrend",
+    phrases: [
+      "안정적으로 상승하는",
+      "안정적인 상승추세",
+      "꾸준히 안정적인 상승추세",
+      "안정적인 우상향",
+      "꾸준히 올라가는",
+      "꾸준히 상승하는",
+      "흐름이 안정적인",
+      "차트가 안정적인",
+      "차트가 안정적으로 올라가는",
+      "급등락 없이 올라가는",
+      "완만하게 우상향하는",
+      "안정적으로 올라가는",
+    ],
+    interpretation:
+      "급등락이 크지 않으면서 중기적으로 상승 흐름이 이어지는 조건으로 해석했습니다.",
+    mappedIndicators: [
+      "이동평균선 정배열",
+      "이동평균선 기울기",
+      "최근 상승률",
+      "변동성",
+      "고점 대비 낙폭",
+    ],
+    alternatives: [
+      {
+        label: "추세 유지형",
+        description:
+          "중기 이동평균선 위에서 흐름이 이어지는지를 더 중점적으로 볼 수 있습니다.",
+        conditionHints: ["20일선 >= 60일선", "종가 >= 60일선", "60일선 기울기 > 0"],
+      },
+      {
+        label: "완만한 상승형",
+        description:
+          "급등보다 완만한 상승을 원한다면 단기 급등률과 변동성 제한을 함께 볼 수 있습니다.",
+        conditionHints: ["20일 상승률 상한", "60일 변동성 상한", "고점 대비 낙폭 제한"],
+      },
+    ],
+    buildConditions: buildStableUptrendConditions,
   },
   {
     id: "broken-chart-exclusion",

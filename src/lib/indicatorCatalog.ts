@@ -113,6 +113,22 @@ export const indicatorCatalog: Record<string, IndicatorExplanation> = {
     usedFor:
       "중기 추세 유지, 단기 조정, RSI 중립 구간을 함께 묶어 표현할 때 사용합니다.",
   },
+  movingAverageSlope: {
+    key: "movingAverageSlope",
+    name: "이동평균선 기울기",
+    plain:
+      "일정 기간의 평균선이 위쪽으로 기울어 있는지, 아래쪽으로 꺾이는지 보는 지표입니다.",
+    usedFor:
+      "안정적으로 이어지는 흐름인지 확인할 때 중기 기준선의 방향을 보조 조건으로 사용합니다.",
+  },
+  drawdown: {
+    key: "drawdown",
+    name: "고점 대비 낙폭",
+    plain:
+      "최근 높은 가격 구간에서 현재 가격이 얼마나 내려왔는지 비율로 보는 값입니다.",
+    usedFor:
+      "흐름이 크게 흔들렸는지, 최근 고점에서 과도하게 밀렸는지 확인할 때 사용합니다.",
+  },
   movingAverageAlignment: {
     key: "movingAverageAlignment",
     name: "정배열/역배열",

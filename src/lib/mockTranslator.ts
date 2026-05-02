@@ -43,6 +43,55 @@ const directFilterKeywords: Record<SelectableFilterId, string[]> = {
 
 const exclusionWords = ["싫", "제외", "빼", "거르", "줄이"];
 
+const stableUptrendContextWords = [
+  "상승",
+  "올라",
+  "오르는",
+  "우상향",
+  "추세",
+  "흐름",
+  "차트",
+  "꾸준",
+  "천천히",
+  "급등락 없이",
+  "완만하게",
+];
+
+const stableUptrendStandalonePatterns = [
+  "꾸준히 올라",
+  "꾸준히 상승",
+  "급등락 없이",
+  "완만하게 우상향",
+  "천천히 우상향",
+  "차분하게 오르",
+  "계단식으로 올라",
+  "안정적으로 올라",
+  "안정적으로 상승",
+];
+
+const companyStabilityStrongWords = ["재무", "우량", "대형", "튼튼", "부채"];
+const companyStabilityContextWords = ["기업", "실적", "회사"];
+const companyStabilityPhrases = ["망하지", "기본은 있는", "안정적인 회사"];
+const brokenChartDamageWords = [
+  "무너",
+  "망가",
+  "깨지",
+  "저점",
+  "신저가",
+  "지지선",
+  "하회",
+  "죽은",
+  "꺾",
+  "급락",
+  "밀려",
+  "빠져",
+  "회복",
+  "버티",
+  "선을 안 깨",
+  "중요한 자리",
+];
+const explicitActivityWords = ["거래량", "거래", "관심", "힘", "활발", "돌파", "탄력"];
+
 const fallbackAlternatives: AlternativeInterpretation[] = [
   {
     label: "안정성 중심",
@@ -64,11 +113,53 @@ const fallbackAlternatives: AlternativeInterpretation[] = [
   },
 ];
 
+const stabilityAmbiguousAlternatives: AlternativeInterpretation[] = [
+  {
+    label: "주가 흐름 안정성",
+    description: "급등락이 크지 않고 추세가 꾸준히 이어지는 조건",
+    conditionHints: [
+      "20일선 >= 60일선",
+      "60일선 기울기 > 0",
+      "60일 변동성 상한",
+    ],
+  },
+  {
+    label: "기업 안정성",
+    description: "기업 규모, 재무, 실적이 상대적으로 안정적인 조건",
+    conditionHints: [
+      "영업이익 적자 여부 확인",
+      "부채비율 과도 여부 확인",
+      "거래대금 부족 위험 표시",
+    ],
+  },
+];
+
 const createId = () =>
   `tr-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 const hasKeyword = (input: string, group: keyof typeof keywordGroups) =>
   keywordGroups[group].some((word) => input.includes(word));
+
+const hasAny = (input: string, keywords: string[]) =>
+  keywords.some((word) => input.includes(word));
+
+const hasStableUptrendContext = (input: string) =>
+  hasAny(input, stableUptrendStandalonePatterns) ||
+  (input.includes("안정") && hasAny(input, stableUptrendContextWords));
+
+const hasCompanyStabilityContext = (input: string) =>
+  hasAny(input, companyStabilityPhrases) ||
+  hasAny(input, companyStabilityStrongWords) ||
+  (input.includes("안정") && hasAny(input, companyStabilityContextWords));
+
+const hasAmbiguousStabilityContext = (
+  input: string,
+  wantsStableUptrend: boolean,
+  wantsCompanyStability: boolean,
+) => input.includes("안정") && !wantsStableUptrend && !wantsCompanyStability;
+
+const hasBrokenChartDamageContext = (input: string) =>
+  hasAny(input, brokenChartDamageWords);
 
 const getDirectFilterIds = (input: string): SelectableFilterId[] =>
   Object.entries(directFilterKeywords)
@@ -100,7 +191,9 @@ const uniqueAlternatives = (
   });
 };
 
-const findPhraseMatches = (input: string) =>
+type PhraseMatch = { rule: PhraseRule; phrase: string };
+
+const findPhraseMatches = (input: string): PhraseMatch[] =>
   phraseDictionary
     .map((rule) => {
       const phrase = rule.phrases.find((candidate) =>
@@ -109,7 +202,47 @@ const findPhraseMatches = (input: string) =>
 
       return phrase ? { rule, phrase } : null;
     })
-    .filter((item): item is { rule: PhraseRule; phrase: string } => Boolean(item));
+    .filter((item): item is PhraseMatch => Boolean(item));
+
+const findRuleById = (ruleId: string) =>
+  phraseDictionary.find((rule) => rule.id === ruleId);
+
+const getStableUptrendContextPhrase = (rawInput: string, normalizedInput: string) => {
+  const stableRule = findRuleById("stable-uptrend");
+  const matchedPhrase = stableRule?.phrases.find((phrase) =>
+    normalizedInput.includes(phrase.toLowerCase()),
+  );
+
+  return matchedPhrase ?? rawInput.trim() ?? "안정적인 상승 흐름";
+};
+
+const addContextualPhraseMatch = (
+  phraseMatches: PhraseMatch[],
+  ruleId: string,
+  phrase: string,
+): PhraseMatch[] => {
+  if (phraseMatches.some((match) => match.rule.id === ruleId)) {
+    return phraseMatches;
+  }
+
+  const rule = findRuleById(ruleId);
+  return rule ? [...phraseMatches, { rule, phrase }] : phraseMatches;
+};
+
+const preferStableUptrendMatch = (
+  phraseMatches: PhraseMatch[],
+  input: string,
+): PhraseMatch[] => {
+  if (!phraseMatches.some((match) => match.rule.id === "stable-uptrend")) {
+    return phraseMatches;
+  }
+
+  if (hasBrokenChartDamageContext(input)) {
+    return phraseMatches;
+  }
+
+  return phraseMatches.filter((match) => match.rule.id !== "broken-chart-exclusion");
+};
 
 const addCondition = (
   conditionsById: Map<string, SearchCondition>,
@@ -139,7 +272,7 @@ const tagConditions = (
   }));
 
 const buildMatchedPhrases = (
-  phraseMatches: Array<{ rule: PhraseRule; phrase: string }>,
+  phraseMatches: PhraseMatch[],
 ): MatchedPhrase[] =>
   phraseMatches.map(({ rule, phrase }) => ({
     id: rule.id,
@@ -155,13 +288,33 @@ export const translateWithMock = (
   const input = rawInput.trim();
   const normalized = input.toLowerCase();
   const defaults = profileDefaults[profile];
-  const phraseMatches = findPhraseMatches(normalized);
+  const wantsStableUptrend = hasStableUptrendContext(normalized);
+  const wantsCompanyStability =
+    hasCompanyStabilityContext(normalized) && !wantsStableUptrend;
+  const hasAmbiguousStability = hasAmbiguousStabilityContext(
+    normalized,
+    wantsStableUptrend,
+    wantsCompanyStability,
+  );
+  let phraseMatches = findPhraseMatches(normalized);
 
-  const wantsStability = hasKeyword(normalized, "stability");
-  const wantsMomentum = hasKeyword(normalized, "momentum");
+  if (wantsStableUptrend) {
+    phraseMatches = addContextualPhraseMatch(
+      phraseMatches,
+      "stable-uptrend",
+      getStableUptrendContextPhrase(input, normalized),
+    );
+    phraseMatches = preferStableUptrendMatch(phraseMatches, normalized);
+  }
+
+  const wantsMomentum = wantsStableUptrend
+    ? hasAny(normalized, explicitActivityWords)
+    : hasKeyword(normalized, "momentum");
   const wantsGrowth = hasKeyword(normalized, "growth");
   const wantsValue = hasKeyword(normalized, "value");
-  const wantsShortTerm = hasKeyword(normalized, "shortTerm");
+  const wantsShortTerm =
+    hasKeyword(normalized, "shortTerm") &&
+    !(wantsStableUptrend && normalized.includes("급등락 없이"));
   const phraseRuleIds = new Set(phraseMatches.map(({ rule }) => rule.id));
   const directFilterIds = getDirectFilterIds(normalized).filter(
     (filterId) =>
@@ -181,14 +334,14 @@ export const translateWithMock = (
     );
   }
 
-  if (wantsStability) {
+  if (wantsCompanyStability) {
     addConditions(
       conditionsById,
       buildSelectedFilterConditions(
         ["small_market_cap", "high_volatility"],
         profile,
         "user_expression",
-        "안정성 표현",
+        "기업 안정성 표현",
       ),
     );
   }
@@ -231,11 +384,16 @@ export const translateWithMock = (
   const matchedPhrases = buildMatchedPhrases(phraseMatches);
   const phraseAlternatives = phraseMatches.flatMap(({ rule }) => rule.alternatives);
   const alternativeInterpretations = uniqueAlternatives(
-    phraseAlternatives.length > 0 ? phraseAlternatives : fallbackAlternatives,
+    hasAmbiguousStability
+      ? stabilityAmbiguousAlternatives
+      : phraseAlternatives.length > 0
+        ? phraseAlternatives
+        : fallbackAlternatives,
   );
 
   const themeParts = [
-    wantsStability ? "안정성" : null,
+    wantsStableUptrend ? "추세 안정성" : null,
+    wantsCompanyStability ? "기업 안정성" : null,
     wantsMomentum || wantsShortTerm ? "거래 활성도와 최근 흐름" : null,
     wantsGrowth ? "실적 흐름" : null,
     wantsValue ? "가격 부담" : null,
@@ -244,7 +402,9 @@ export const translateWithMock = (
 
   const matchedPhraseText = matchedPhrases.map((item) => `"${item.phrase}"`).join(", ");
   const interpretationSummary =
-    matchedPhrases.length > 0
+    hasAmbiguousStability
+      ? "안정이라는 표현만으로는 주가 흐름 안정성과 기업 안정성 모두로 볼 수 있어, 하나로 단정하지 않고 대안 해석을 함께 표시했습니다."
+      : matchedPhrases.length > 0
       ? `${matchedPhraseText} 표현을 인식해 사용자의 말에서 나온 조건으로 분해했습니다. 위험 요소는 조건식에 자동으로 넣지 않고 별도로 표시합니다.`
       : "명확한 사전 표현은 없어서 조건식으로 바로 변환할 표현이 적습니다. 위험 요소는 조건검색 참고용으로 별도 표시합니다.";
 

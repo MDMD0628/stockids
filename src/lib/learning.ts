@@ -69,6 +69,26 @@ const keywordMappings: KeywordMapping[] = [
     ],
   },
   {
+    keywords: ["안정", "상승", "우상향", "꾸준히", "흐름", "차트"],
+    targetRuleId: "stable-uptrend",
+    title: "추세 안정성 표현 추가 후보",
+    description:
+      "안정적으로 이어지는 가격 흐름을 말한 표현을 추세 안정성 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: [
+      "이동평균선 정배열",
+      "이동평균선 기울기",
+      "최근 상승률",
+      "변동성",
+      "고점 대비 낙폭",
+    ],
+    suggestedConditionHints: [
+      "20일선 >= 60일선",
+      "60일선 기울기 > 0",
+      "60일 변동성 상한",
+      "고점 대비 낙폭 제한",
+    ],
+  },
+  {
     keywords: ["무너진", "망가진", "저점", "신저가"],
     targetRuleId: "broken-chart-exclusion",
     title: "흐름 훼손 제외 표현 추가 후보",
@@ -130,9 +150,61 @@ const getMatchedRuleCount = (record: FeedbackRecord) =>
 const hasLowMatchedPhraseCount = (record: FeedbackRecord) =>
   getMatchedRuleCount(record) <= 1;
 
+const companyStabilityBlockers = [
+  "재무",
+  "기업",
+  "우량",
+  "대형",
+  "튼튼",
+  "부채",
+  "실적",
+  "망하지",
+  "기본은 있는",
+  "회사",
+];
+
+const stableUptrendStrongHints = [
+  "안정적으로 상승",
+  "안정적으로 올라",
+  "안정적인 우상향",
+  "상승추세",
+  "꾸준히 올라",
+  "꾸준히 상승",
+  "급등락 없이",
+  "완만하게 우상향",
+  "차트가 안정",
+  "흐름이 안정",
+];
+
+const stableUptrendSoftHints = ["상승", "우상향", "꾸준히", "흐름", "차트", "올라"];
+
+const hasCompanyStabilityBlocker = (analysisText: string) =>
+  companyStabilityBlockers.some((keyword) => analysisText.includes(keyword));
+
+const hasStableUptrendSuggestionContext = (analysisText: string) => {
+  if (hasCompanyStabilityBlocker(analysisText)) {
+    return false;
+  }
+
+  return (
+    stableUptrendStrongHints.some((keyword) => analysisText.includes(keyword)) ||
+    (analysisText.includes("안정") &&
+      stableUptrendSoftHints.some((keyword) => analysisText.includes(keyword)))
+  );
+};
+
 const findMapping = (record: FeedbackRecord) => {
   const analysisText = getAnalysisText(record);
+  const stableUptrendMapping = keywordMappings.find(
+    (mapping) => mapping.targetRuleId === "stable-uptrend",
+  );
+
+  if (stableUptrendMapping && hasStableUptrendSuggestionContext(analysisText)) {
+    return stableUptrendMapping;
+  }
+
   return keywordMappings.find((mapping) =>
+    mapping.targetRuleId !== "stable-uptrend" &&
     mapping.keywords.some((keyword) => analysisText.includes(keyword)),
   );
 };
