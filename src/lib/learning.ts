@@ -30,7 +30,7 @@ const aggressiveReason: FeedbackWrongReason = "조건이 너무 공격적임";
 
 const keywordMappings: KeywordMapping[] = [
   {
-    keywords: ["고점", "추격", "꼭대기", "너무 위"],
+    keywords: ["고점", "추격", "꼭대기", "너무 위", "상투", "과열", "불타기", "fomo", "FOMO", "끝물"],
     targetRuleId: "overheat-avoidance",
     title: "과열 회피 표현 추가 후보",
     description:
@@ -86,6 +86,83 @@ const keywordMappings: KeywordMapping[] = [
       "60일선 기울기 > 0",
       "60일 변동성 상한",
       "고점 대비 낙폭 제한",
+    ],
+  },
+  {
+    keywords: ["출렁", "흔들", "급등락", "롤러코스터", "요동", "변동"],
+    targetRuleId: "volatility-risk-avoidance",
+    title: "변동성 회피 표현 추가 후보",
+    description:
+      "가격이 크게 흔들리는 느낌의 표현을 변동성 회피 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["20일 변동성", "60일 변동성", "ATR", "최근 급등락 횟수"],
+    suggestedConditionHints: [
+      "60일 변동성 상한",
+      "20일 평균 일중 변동폭 상한",
+      "최근 20일 급락일 수 제한",
+    ],
+  },
+  {
+    keywords: ["테마", "뉴스", "이슈", "재료", "기대감", "묻지마"],
+    targetRuleId: "theme-speculation-avoidance",
+    title: "테마성 과열 회피 표현 추가 후보",
+    description:
+      "테마나 단기 이슈에 따른 가격 과열을 줄이고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["최근 상승률", "RSI", "거래량 급증", "실적 위험 표시"],
+    suggestedConditionHints: [
+      "20일 상승률 상한",
+      "RSI 상한",
+      "뉴스/테마 데이터는 추후 연결 필요",
+    ],
+  },
+  {
+    keywords: ["망한", "부실", "적자", "빚", "상장폐지", "관리종목", "자본잠식", "감사의견"],
+    targetRuleId: "financial-distress-avoidance",
+    title: "재무 위험 신호 회피 표현 추가 후보",
+    description:
+      "재무 위험 신호가 큰 회사를 줄이고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["관리종목 여부", "자본잠식 여부", "감사의견", "연속 적자", "부채비율"],
+    suggestedConditionHints: [
+      "관리종목 여부 = 아님",
+      "자본잠식 여부 = 아님",
+      "감사의견 상태 = 정상",
+      "부채비율 상한",
+    ],
+  },
+  {
+    keywords: ["기본", "탄탄", "재무", "실적", "돈은 버는", "본업", "우량"],
+    targetRuleId: "fundamental-quality-preference",
+    title: "기본기 있는 기업 표현 추가 후보",
+    description:
+      "본업, 실적, 재무 기반이 너무 약하지 않은 회사를 찾는 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["영업이익", "매출", "부채비율", "영업이익률"],
+    suggestedConditionHints: [
+      "TTM 영업이익 > 0",
+      "TTM 매출 > 0",
+      "부채비율 상한",
+      "영업이익률 하한",
+    ],
+  },
+  {
+    keywords: ["작은", "잡주", "시총", "가벼운", "유동성", "호가 얇은", "사고팔기 힘든"],
+    targetRuleId: "size-liquidity-avoidance",
+    title: "규모·유동성 회피 표현 추가 후보",
+    description:
+      "작은 규모나 거래가 얇은 구간을 줄이고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["시가총액", "20일 평균 거래대금", "20일 평균 거래량"],
+    suggestedConditionHints: ["시가총액 하한", "20일 평균 거래대금 하한"],
+  },
+  {
+    keywords: ["방어", "보수적", "초보자", "덜 불안", "반토막", "장기 보유"],
+    targetRuleId: "defensive-risk-preference",
+    title: "방어적 성향 표현 추가 후보",
+    description:
+      "상대적으로 변동성과 위험 신호를 줄이고 싶은 표현을 별도 규칙에 추가할 수 있습니다.",
+    suggestedIndicators: ["변동성", "고점 대비 낙폭", "부채비율", "최근 상승률"],
+    suggestedConditionHints: [
+      "60일 변동성 상한",
+      "고점 대비 낙폭 제한",
+      "부채비율 상한",
+      "20일 상승률 상한",
     ],
   },
   {

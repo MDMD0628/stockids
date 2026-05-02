@@ -34,11 +34,47 @@ const keywordGroups = {
 };
 
 const directFilterKeywords: Record<SelectableFilterId, string[]> = {
-  thin_liquidity: ["거래량 얇", "거래가 얇", "거래 적은", "거래 부족", "유동성"],
-  small_market_cap: ["소형주", "작은 종목", "시가총액 작은", "규모 작은"],
-  high_volatility: ["변동성 큰", "흔들림 큰", "위험한", "너무 위험"],
+  thin_liquidity: [
+    "거래량 얇",
+    "거래가 얇",
+    "거래 적은",
+    "거래 부족",
+    "유동성",
+    "사고팔기 힘든",
+    "호가가 너무 얇",
+  ],
+  small_market_cap: [
+    "소형주",
+    "작은 종목",
+    "시가총액 작은",
+    "시총 너무 작은",
+    "규모 작은",
+    "잡주",
+    "가벼운 종목",
+  ],
+  high_volatility: [
+    "변동성 큰",
+    "변동이 너무 큰",
+    "흔들림 큰",
+    "위험한",
+    "너무 위험",
+    "급등락 심한",
+    "출렁",
+    "요동",
+  ],
   deficit_company: ["적자", "실적 불안정", "영업이익 적자"],
-  recent_runup: ["최근 급등", "너무 오른", "과열", "고점", "추격"],
+  financial_risk: [
+    "망한",
+    "부실",
+    "재무 안 좋은",
+    "상장폐지",
+    "관리종목",
+    "자본잠식",
+    "감사의견",
+    "빚 많은",
+  ],
+  theme_overheat: ["테마", "뉴스 하나", "이슈", "재료", "기대감", "묻지마"],
+  recent_runup: ["최근 급등", "너무 오른", "과열", "고점", "추격", "상투", "끝물"],
 };
 
 const exclusionWords = ["싫", "제외", "빼", "거르", "줄이"];
@@ -307,6 +343,14 @@ export const translateWithMock = (
     phraseMatches = preferStableUptrendMatch(phraseMatches, normalized);
   }
 
+  if (hasAmbiguousStability) {
+    phraseMatches = addContextualPhraseMatch(
+      phraseMatches,
+      "defensive-risk-preference",
+      input || "안정성 표현",
+    );
+  }
+
   const wantsMomentum = wantsStableUptrend
     ? hasAny(normalized, explicitActivityWords)
     : hasKeyword(normalized, "momentum");
@@ -318,7 +362,21 @@ export const translateWithMock = (
   const phraseRuleIds = new Set(phraseMatches.map(({ rule }) => rule.id));
   const directFilterIds = getDirectFilterIds(normalized).filter(
     (filterId) =>
-      !(filterId === "recent_runup" && phraseRuleIds.has("overheat-avoidance")),
+      !(filterId === "recent_runup" && phraseRuleIds.has("overheat-avoidance")) &&
+      !(
+        filterId === "high_volatility" &&
+        (phraseRuleIds.has("volatility-risk-avoidance") ||
+          phraseRuleIds.has("defensive-risk-preference"))
+      ) &&
+      !(
+        (filterId === "financial_risk" || filterId === "deficit_company") &&
+        phraseRuleIds.has("financial-distress-avoidance")
+      ) &&
+      !(filterId === "theme_overheat" && phraseRuleIds.has("theme-speculation-avoidance")) &&
+      !(
+        (filterId === "small_market_cap" || filterId === "thin_liquidity") &&
+        phraseRuleIds.has("size-liquidity-avoidance")
+      ),
   );
 
   const conditionsById = new Map<string, SearchCondition>();
@@ -330,18 +388,6 @@ export const translateWithMock = (
         buildMomentumConditions(defaults),
         "user_expression",
         wantsShortTerm ? "단기 흐름 표현" : "거래 활성도 표현",
-      ),
-    );
-  }
-
-  if (wantsCompanyStability) {
-    addConditions(
-      conditionsById,
-      buildSelectedFilterConditions(
-        ["small_market_cap", "high_volatility"],
-        profile,
-        "user_expression",
-        "기업 안정성 표현",
       ),
     );
   }

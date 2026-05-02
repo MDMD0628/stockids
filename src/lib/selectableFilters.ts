@@ -6,6 +6,8 @@ export type SelectableFilterId =
   | "small_market_cap"
   | "high_volatility"
   | "deficit_company"
+  | "financial_risk"
+  | "theme_overheat"
   | "recent_runup";
 
 export type SelectedFilterSnapshot = {
@@ -24,27 +26,37 @@ export const selectableFilterOptions: SelectableFilterOption[] = [
   {
     id: "thin_liquidity",
     label: "거래량 얇은 종목 제외",
-    description: "거래대금 기준을 조건식에 추가합니다.",
+    description: "거래대금 기준을 사용자 선택 필터로 조건식에 추가합니다.",
   },
   {
     id: "small_market_cap",
     label: "시가총액 작은 종목 제외",
-    description: "규모가 작은 종목을 줄이는 조건을 추가합니다.",
+    description: "규모가 작은 구간을 줄이는 조건을 사용자 선택 필터로 추가합니다.",
   },
   {
     id: "high_volatility",
     label: "변동성 큰 종목 제외",
-    description: "가격 흔들림이 큰 종목을 줄이는 조건을 추가합니다.",
+    description: "가격 흔들림이 큰 구간을 줄이는 조건을 사용자 선택 필터로 추가합니다.",
   },
   {
     id: "deficit_company",
     label: "적자 기업 제외",
-    description: "최근 영업이익이 0 이상인 조건을 추가합니다.",
+    description: "최근 영업이익 기준을 사용자 선택 필터로 조건식에 추가합니다.",
+  },
+  {
+    id: "financial_risk",
+    label: "재무 위험 신호 있는 종목 제외",
+    description: "관리 이슈, 자본잠식, 감사의견, 부채비율 기준을 사용자 선택 필터로 추가합니다.",
+  },
+  {
+    id: "theme_overheat",
+    label: "테마성 과열 종목 제외",
+    description: "테마/뉴스 데이터는 추후 연결 대상으로 두고, 현재는 과열 대체 조건을 추가합니다.",
   },
   {
     id: "recent_runup",
     label: "최근 급격히 오른 종목 제외",
-    description: "최근 가격 변화가 과한 구간을 줄이는 조건을 추가합니다.",
+    description: "최근 가격 변화가 과한 구간을 줄이는 조건을 사용자 선택 필터로 추가합니다.",
   },
 ];
 
@@ -163,6 +175,48 @@ const buildSelectableFilterCondition = (
         {
           ...commonOptions,
           easyDescription: "최근 영업이익이 적자인 기업을 줄입니다.",
+        },
+      );
+    case "financial_risk":
+      return condition(
+        "filter-financial-risk",
+        "stability",
+        "재무 위험 선택 필터",
+        "재무 위험 신호",
+        "=",
+        "낮음",
+        "사용자가 재무 위험 신호가 있는 회사를 줄이기로 선택해 관리 이슈와 재무 부담을 확인하는 기준을 추가했습니다.",
+        "fundamentals",
+        {
+          field: "has_financial_risk_flag",
+          operator: "=",
+          value: false,
+          unit: "boolean",
+        },
+        {
+          ...commonOptions,
+          easyDescription: "재무 위험 신호가 큰 회사를 줄입니다.",
+        },
+      );
+    case "theme_overheat":
+      return condition(
+        "filter-theme-overheat",
+        "risk",
+        "테마성 과열 선택 필터",
+        "20일 상승률",
+        "<=",
+        defaults.recentReturnCap,
+        "사용자가 테마성 과열 구간을 줄이기로 선택해 현재 MVP에서 계산 가능한 가격 과열 대체 기준을 추가했습니다.",
+        "recentReturn",
+        {
+          field: "return_20d_pct",
+          operator: "<=",
+          value: percentFromText(defaults.recentReturnCap),
+          unit: "percent",
+        },
+        {
+          ...commonOptions,
+          easyDescription: "테마성 과열로 볼 수 있는 가격 과열 구간을 줄입니다.",
         },
       );
     case "recent_runup":

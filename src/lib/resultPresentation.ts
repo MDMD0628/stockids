@@ -32,6 +32,26 @@ const conditionEasyCopy: Record<string, string> = {
   "phrase-stable-uptrend-volatility": "가격 움직임이 과도하게 흔들리지 않은 종목",
   "phrase-stable-uptrend-drawdown": "최근 고점에서 크게 밀리지 않은 종목",
   "phrase-stable-uptrend-runup-cap": "짧은 기간에 과하게 앞서가지 않은 종목",
+  "phrase-volatility-60d-cap": "가격 흔들림이 과도하지 않은 종목",
+  "phrase-intraday-range-cap": "하루 안의 움직임이 과도하지 않은 종목",
+  "phrase-sharp-drop-days-cap": "최근 급락이 자주 나오지 않은 종목",
+  "phrase-theme-runup-cap": "단기 이슈성 과열 구간을 줄인 종목",
+  "phrase-theme-rsi-cap": "흐름 강도가 과하게 쏠리지 않은 종목",
+  "phrase-management-issue-exclude": "관리 이슈 위험 신호를 줄인 종목",
+  "phrase-capital-impairment-exclude": "자본잠식 위험 신호를 줄인 종목",
+  "phrase-audit-opinion-normal": "감사의견 위험 신호를 줄인 종목",
+  "phrase-operating-loss-years-cap": "연속 적자가 길지 않은 종목",
+  "phrase-debt-ratio-cap": "부채 부담이 과도하지 않은 종목",
+  "phrase-operating-profit-positive": "본업 이익이 확인되는 종목",
+  "phrase-revenue-positive": "매출이 확인되는 종목",
+  "phrase-quality-debt-ratio-cap": "재무 부담이 과도하지 않은 종목",
+  "phrase-operating-margin-floor": "이익 체력이 너무 약하지 않은 종목",
+  "phrase-size-market-cap-floor": "규모가 너무 작은 구간을 줄인 종목",
+  "phrase-size-trading-value-floor": "거래가 너무 얇은 구간을 줄인 종목",
+  "phrase-defensive-volatility-cap": "상대적으로 변동성이 낮은 조건의 종목",
+  "phrase-defensive-drawdown-cap": "최근 낙폭이 과하지 않은 종목",
+  "phrase-defensive-runup-cap": "과열 구간을 줄인 종목",
+  "phrase-defensive-debt-ratio-cap": "재무 위험 신호를 줄인 종목",
   "phrase-close-above-60ma": "중기 흐름 기준선 아래로 내려가지 않은 종목",
   "phrase-no-new-low": "최근 저점을 새로 낮추지 않은 종목",
   "phrase-not-reverse-alignment": "흐름이 아래로 정렬되지 않은 종목",
@@ -44,6 +64,8 @@ const conditionEasyCopy: Record<string, string> = {
   "filter-small-market-cap": "시가총액이 작은 종목을 줄입니다.",
   "filter-high-volatility": "변동성이 큰 종목을 줄입니다.",
   "filter-deficit-company": "최근 영업이익이 적자인 기업을 줄입니다.",
+  "filter-financial-risk": "재무 위험 신호가 큰 회사를 줄입니다.",
+  "filter-theme-overheat": "테마성 과열로 볼 수 있는 가격 과열 구간을 줄입니다.",
   "filter-recent-runup": "최근 가격 변화가 과한 종목을 줄입니다.",
 };
 
@@ -52,6 +74,12 @@ const phraseSummaryCopy: Record<string, string> = {
   "overheat-avoidance": "과하게 앞서간 흐름은 줄인",
   "volume-strength-building": "최근 거래 관심이 붙은",
   "stable-uptrend": "급등락이 크지 않고 중기 상승 흐름이 이어지는",
+  "volatility-risk-avoidance": "가격 흔들림이 과도한 구간을 줄인",
+  "theme-speculation-avoidance": "테마성 과열 구간을 줄인",
+  "financial-distress-avoidance": "재무 위험 신호가 큰 회사를 줄인",
+  "fundamental-quality-preference": "본업과 재무 기반이 확인되는",
+  "size-liquidity-avoidance": "작은 규모와 저유동성 구간을 줄인",
+  "defensive-risk-preference": "상대적으로 변동성과 위험 신호를 줄인",
   "broken-chart-exclusion": "흐름이 크게 훼손된 구간은 제외하는",
   pullback: "중기 흐름은 유지하되 잠시 쉬어가는",
   "three-white-soldiers": "양봉 흐름이 이어지는",
@@ -63,12 +91,20 @@ const conditionSummaryCopy: Record<string, string> = {
   "phrase-stable-uptrend-ma-alignment": "중기 상승 흐름을 유지하는",
   "phrase-stable-uptrend-ma-slope": "중기 기준선이 아래로 꺾이지 않은",
   "phrase-stable-uptrend-volatility": "급등락을 줄인",
+  "phrase-volatility-60d-cap": "변동성을 줄인",
+  "phrase-theme-runup-cap": "테마성 과열을 줄인",
+  "phrase-management-issue-exclude": "재무 위험 신호를 줄인",
+  "phrase-operating-profit-positive": "본업 이익을 확인하는",
+  "phrase-size-market-cap-floor": "규모가 너무 작은 구간을 줄인",
+  "phrase-defensive-volatility-cap": "상대적으로 변동성이 낮은 조건을 보는",
   "growth-revenue": "실적 흐름을 함께 보는",
   "growth-operating-profit": "이익 흐름을 함께 보는",
   "valuation-per": "가격 부담을 줄인",
   "valuation-pbr": "자산 대비 가격 부담을 줄인",
   "filter-small-market-cap": "규모 안정성을 함께 보는",
   "filter-high-volatility": "흔들림을 줄인",
+  "filter-financial-risk": "재무 위험 신호를 줄인",
+  "filter-theme-overheat": "테마성 과열을 줄인",
 };
 
 const riskFactors: RiskFactor[] = [
@@ -94,6 +130,13 @@ const riskFactors: RiskFactor[] = [
     relatedFilterId: "high_volatility",
   },
   {
+    id: "volatility-spike-risk",
+    title: "급등락 반복 가능성",
+    description:
+      "일부 조건은 급등락이 반복되는 구간도 포함할 수 있습니다. 원하면 사용자 선택 필터에서 제외할 수 있습니다.",
+    relatedFilterId: "high_volatility",
+  },
+  {
     id: "recent-runup-risk",
     title: "단기 과열 후 되돌림 가능성",
     description:
@@ -108,10 +151,25 @@ const riskFactors: RiskFactor[] = [
     relatedFilterId: "deficit_company",
   },
   {
+    id: "financial-distress-risk",
+    title: "재무 위험 신호 가능성",
+    description:
+      "재무 위험 신호가 있는 회사도 포함될 수 있습니다. 원하면 사용자 선택 필터에서 제외할 수 있습니다.",
+    relatedFilterId: "financial_risk",
+  },
+  {
     id: "theme-volatility-risk",
     title: "테마성 변동 가능성",
     description:
-      "입력 문장을 조건식으로 변환한 결과이며, 테마성 가격 변화는 별도 확인이 필요할 수 있습니다.",
+      "입력 문장을 조건식으로 변환한 결과이며, 테마성 가격 변화는 별도 위험 요소로 볼 수 있습니다.",
+    relatedFilterId: "theme_overheat",
+  },
+  {
+    id: "high-position-volume-risk",
+    title: "고점 거래 집중 가능성",
+    description:
+      "고점 부근에서 거래가 몰린 구간은 과열 구간일 수 있습니다. 원하면 사용자 선택 필터에서 제외할 수 있습니다.",
+    relatedFilterId: "recent_runup",
   },
 ];
 
@@ -202,6 +260,30 @@ export const buildTranslationCharacter = (result: TranslationResult) => {
 
   if (phraseIds.has("stable-uptrend")) {
     return "급등락을 줄이면서 중기 흐름이 이어지는지를 보는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("volatility-risk-avoidance")) {
+    return "가격 흔들림이 과도한 구간을 줄이는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("theme-speculation-avoidance")) {
+    return "테마성 과열을 가격 흐름 기준으로 줄이는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("financial-distress-avoidance")) {
+    return "재무 위험 신호가 큰 회사를 줄이는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("fundamental-quality-preference")) {
+    return "본업과 재무 기반이 너무 약하지 않은지를 보는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("size-liquidity-avoidance")) {
+    return "작은 규모나 저유동성 구간을 줄이는 조건에 가깝습니다.";
+  }
+
+  if (phraseIds.has("defensive-risk-preference")) {
+    return "상대적으로 변동성과 위험 신호를 줄이는 조건에 가깝습니다.";
   }
 
   if (phraseIds.has("broken-chart-exclusion")) {
