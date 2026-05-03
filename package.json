@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "dev:collector-admin": "vite --config apps/data-collector-admin/vite.config.ts --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
+    "build:collector-admin": "tsc --noEmit -p apps/data-collector-admin/tsconfig.json && vite build --config apps/data-collector-admin/vite.config.ts",
+    "check:collector-worker": "tsc --noEmit -p workers/data-collector/tsconfig.json",
+    "build:all": "npm run build && npm run build:collector-admin && npm run check:collector-worker",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {

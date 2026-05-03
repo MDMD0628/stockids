@@ -143,9 +143,11 @@ function App() {
                 <BarChart3 size={22} aria-hidden="true" />
               </span>
               <div>
-                <p className="text-sm font-semibold uppercase text-pine">StockIDS</p>
+                <p className="text-sm font-semibold uppercase text-pine">
+                  조건검색 참고용
+                </p>
                 <h1 className="text-2xl font-bold md:text-3xl">
-                  자연어 조건검색 번역기
+                  주린이 번역기
                 </h1>
               </div>
             </div>
